@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zinzino Test Analyse</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h1 { text-align: center; font-size: 28px; color: #1a1a2e; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+
+    /* Search */
+    .search-box {
+      display: flex;
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { border-color: #4a6cf7; }
+    .search-box button {
+      padding: 14px 28px;
+      background: #4a6cf7;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .search-box button:hover { background: #3a5ce5; }
+    .search-box button:disabled { background: #999; cursor: not-allowed; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px 20px; display: none; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #4a6cf7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error {
+      background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
+      padding: 16px; border-radius: 10px; text-align: center; display: none;
+    }
+
+    #results { display: none; }
+
+    /* Person Info */
+    .person-info {
+      background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;
+    }
+    .person-info .info-item label {
+      display: block; font-size: 12px; color: #888;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .person-info .info-item span { font-size: 16px; font-weight: 600; }
+
+    /* ===== ZINZINO SUMMARY CARDS ===== */
+    .zinzino-summary {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .hero-card {
+      border-radius: 12px;
+      padding: 28px 32px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .hero-card.bg-red { background: #d32f2f; }
+    .hero-card.bg-yellow { background: #f9a825; }
+    .hero-card.bg-green { background: #388e3c; }
+
+    .hero-card .warn-icon {
+      width: 56px; height: 56px; flex-shrink: 0;
+      background: rgba(255,255,255,0.2); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+    }
+    .hero-card .hero-label { font-size: 14px; opacity: 0.9; }
+    .hero-card .hero-value { font-size: 32px; font-weight: 700; margin-top: 4px; }
+    .hero-card .hero-status { font-size: 14px; opacity: 0.85; margin-top: 2px; }
+
+    .protection-card {
+      grid-row: 1;
+      grid-column: 2;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .protection-card.border-red { border: 2px solid #ef4444; }
+    .protection-card.border-yellow { border: 2px solid #f59e0b; }
+    .protection-card.border-green { border: 2px solid #22c55e; }
+
+    .protection-card .prot-label { font-size: 14px; color: #555; font-weight: 600; margin-bottom: 12px; }
+
+    .prot-circle {
+      width: 70px; height: 70px; border-radius: 50%;
+      border: 6px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; position: relative;
+      margin-bottom: 10px;
+    }
+
+    .protection-card .prot-status { font-size: 15px; font-weight: 700; }
+
+    /* Small summary cards row */
+    .summary-row {
+      grid-row: 2;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .mini-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .mini-card.border-red { border: 2px solid #ef4444; }
+    .mini-card.border-yellow { border: 2px solid #f59e0b; }
+    .mini-card.border-green { border: 2px solid #22c55e; }
+
+    .mini-card .mini-title { font-size: 13px; color: #555; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+    .mini-card .mini-status-row { display: flex; align-items: center; gap: 8px; }
+    .mini-card .mini-indicator {
+      width: 8px; height: 20px; border-radius: 2px;
+    }
+    .mini-card .mini-status { font-size: 13px; color: #555; }
+    .mini-card .mini-value { font-size: 18px; font-weight: 700; }
+
+    .ind-red { background: #ef4444; }
+    .ind-yellow { background: #f59e0b; }
+    .ind-green { background: #22c55e; }
+    .text-red { color: #ef4444; }
+    .text-yellow { color: #f59e0b; }
+    .text-green { color: #22c55e; }
+
+    /* ===== ANALYSIS TEXT ===== */
+    .analysis-card {
+      background: white; border-radius: 12px; padding: 24px;
+      margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .analysis-card h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a2e; }
+    .analysis-text {
+      background: #f0f4ff; border-left: 4px solid #4a6cf7;
+      padding: 16px; border-radius: 0 8px 8px 0; line-height: 1.6;
+    }
+
+    /* ===== DETAIL MARKER BARS ===== */
+    .detail-markers { margin-bottom: 24px; }
+    .detail-markers h2 { font-size: 20px; margin-bottom: 20px; color: #1a1a2e; }
+
+    .detail-card {
+      background: white; border-radius: 12px; padding: 24px;
+      margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .detail-card h3 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 12px; color: #1a1a2e; }
+
+    .detail-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .detail-left {}
+
+    .detail-status-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+    }
+    .detail-status-indicator {
+      width: 8px; height: 22px; border-radius: 2px; flex-shrink: 0;
+    }
+    .detail-status-text { font-size: 14px; }
+    .detail-status-value { font-weight: 700; font-size: 14px; }
+
+    /* Gradient bar */
+    .gradient-bar-container {
+      position: relative;
+      margin-bottom: 4px;
+      padding-top: 28px;
+    }
+    .gradient-bar {
+      display: flex;
+      height: 14px;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .gradient-bar .seg {
+      height: 100%;
+    }
+    .seg-red { background: #d32f2f; }
+    .seg-yellow { background: #f9a825; }
+    .seg-green { background: #4caf50; }
+
+    .bar-arrow {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: #1a1a2e;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .tick-labels {
+      position: relative;
+      height: 18px;
+      margin-top: 3px;
+    }
+    .tick-labels span {
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: #999;
+    }
+    .tick-labels span:first-child { transform: translateX(0); }
+    .tick-labels span:last-child { transform: translateX(-100%); }
+
+    .detail-right {
+      font-size: 13px; color: #555; line-height: 1.6;
+      padding-top: 4px;
+    }
+
+    /* Tooltip for fatty acids */
+    .fa-info {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      margin-left: 4px;
+    }
+    .fa-info .fa-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #e0e7ff;
+      color: #4a6cf7;
+      font-size: 10px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .fa-info .fa-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      width: 280px;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 400;
+    }
+    .fa-info .fa-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1a1a2e;
+    }
+    .fa-info:hover .fa-tooltip { display: block; }
+
+    @media (max-width: 600px) {
+      .detail-body { grid-template-columns: 1fr; }
+    }
+
+    /* ===== FATTY ACIDS TABLE ===== */
+    .fatty-acids-card {
+      background: white; border-radius: 12px; padding: 24px;
+      margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .fatty-acids-card h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a2e; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    th { font-size: 12px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; font-weight: 600; }
+    td { font-size: 14px; }
+    .deviation-pos { color: #ef4444; font-weight: 600; }
+    .deviation-neg { color: #3b82f6; font-weight: 600; }
+    .deviation-ok { color: #22c55e; font-weight: 600; }
+
+    .fa-cat-row td {
+      background: #f8f9fb;
+      font-size: 15px;
+      padding: 10px 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    /* Fat Categories */
+    .fat-categories {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .fat-cat-card {
+      background: white; border-radius: 12px; padding: 16px;
+      text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .fat-cat-card .label { font-size: 13px; color: #666; margin-bottom: 8px; }
+    .fat-cat-card .value { font-size: 22px; font-weight: 700; }
+    .fat-cat-card .target { font-size: 12px; color: #888; margin-top: 4px; }
+
+    section { margin-bottom: 24px; }
+    section h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a2e; }
+
+    @media (max-width: 700px) {
+      .zinzino-summary { grid-template-columns: 1fr; }
+      .hero-card { grid-column: 1; }
+      .protection-card { grid-column: 1; }
+      .summary-row { grid-column: 1; grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Zinzino Test Analyse</h1>
+    <p class="subtitle">Test-ID eingeben, um Ergebnisse abzurufen und zu analysieren</p>
+
+    <div class="search-box">
+      <input type="text" id="testIdInput" placeholder="Test-ID eingeben (z.B. 24HM99626342BT)" />
+      <button id="fetchBtn" onclick="fetchTest()">Analysieren</button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Testergebnisse werden geladen und analysiert...</p>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div id="results">
+      <div class="analysis-card">
+        <h2>Analyse-Zusammenfassung</h2>
+        <div class="analysis-text" id="analysisText"></div>
+      </div>
+
+      <div class="person-info" id="personInfo"></div>
+      <div id="zinzinoSummary"></div>
+
+      <div class="detail-markers">
+        <h2>Einzelergebnisse</h2>
+        <div id="detailMarkers"></div>
+      </div>
+
+      <div class="fatty-acids-card">
+        <h2>Fettsäure-Profil (Detail)</h2>
+        <table id="fattyAcidsTable">
+          <thead>
+            <tr>
+              <th>Fettsäure</th>
+              <th>Chem. Name</th>
+              <th>Ist-Wert</th>
+              <th>Zielwert</th>
+              <th>Abweichung</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <section>
+        <h2>Fettsäure-Kategorien</h2>
+        <div class="fat-categories" id="fatCategories"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ===== MARKER CONFIGURATIONS (Deutsch, Reihenfolge wie im Zinzino-Report) =====
+    const MARKER_CONFIGS = {
+      'omega63': {
+        apiField: 'Omega-6 (AA)/Omega-3 (EPA) Balance',
+        title: 'Omega-6:3-Balance',
+        ticks: [125, 9, 3, 1],
+        tickLabels: ['125:1', '9:1', '3:1', '1:1'],
+        segColors: ['red', 'yellow', 'green'],
+        reversed: true,
+        unit: ':1',
+        decimals: 0,
+        statusLabels: { red: 'Nicht ausbalanciert', yellow: 'Mittelmäßig', green: 'Ausbalanciert' },
+        descriptions: {
+          red: 'Die Omega-6:3-Balance ist zu hoch. Erhöhen Sie den Anteil von Omega-3-Fettsäuren in Ihrer Ernährung, um Ihre Ergebnisse zu verbessern und eine Balance zu erreichen.',
+          yellow: 'Die Omega-6:3-Balance ist leicht erhöht. Erhöhen Sie weiterhin die Omega-3-Zufuhr.',
+          green: 'Die Omega-6:3-Balance liegt im optimalen Bereich.'
+        }
+      },
+      'protection': {
+        apiField: 'Your Protection (Fatty Acids Profile Value)',
+        title: 'Schutzwert',
+        ticks: [0, 50, 90, 100],
+        tickLabels: ['0%', '50%', '90%', '100%'],
+        segColors: ['red', 'yellow', 'green'],
+        reversed: false,
+        unit: '%',
+        decimals: 0,
+        statusLabels: { red: 'Unzureichend', yellow: 'Mittelmäßig', green: 'Optimal' },
+        descriptions: {
+          red: 'Der Schutzwert ist unzureichend. Eine tägliche Einnahme von BalanceOil in der empfohlenen Menge für 120 Tage wird die mögliche Schutzwirkung der Ernährung erhöhen.',
+          yellow: 'Der Schutzwert ist mittelmäßig. Setzen Sie die tägliche Einnahme von BalanceOil fort.',
+          green: 'Der Schutzwert liegt im optimalen Bereich.'
+        }
+      },
+      'omega3': {
+        apiField: 'Omega-3 (EPA+DHA) Level',
+        title: 'Omega-3-Index',
+        ticks: [0, 4, 8, 12],
+        tickLabels: ['0%', '4%', '8%', '12%'],
+        segColors: ['red', 'yellow', 'green'],
+        reversed: false,
+        unit: '%',
+        decimals: 1,
+        statusLabels: { red: 'Unzureichend', yellow: 'Mittelmäßig', green: 'Optimal' },
+        descriptions: {
+          red: 'Der Omega-3-Index ist unzureichend. Erhöhen Sie die Aufnahme von Omega-3, um einen optimalen Omega-3-Index zu erreichen.',
+          yellow: 'Der Omega-3-Index ist mittelmäßig. Erhöhen Sie weiterhin die Omega-3-Aufnahme.',
+          green: 'Der Omega-3-Index liegt im optimalen Bereich.'
+        }
+      },
+      'mental': {
+        apiField: 'Mental Strength Index',
+        title: 'Mentale Stärke',
+        ticks: [6, 3, 1, 0.5],
+        tickLabels: ['6:1', '3:1', '1:1', '0.5:1'],
+        segColors: ['red', 'yellow', 'green'],
+        reversed: true,
+        unit: ':1',
+        decimals: 1,
+        statusLabels: { red: 'Unzureichend', yellow: 'Mittelmäßig', green: 'Optimal' },
+        descriptions: {
+          red: 'Der Wert Ihrer mentalen Stärke ist unzureichend. Sie brauchen eine marine Omega-3-Quelle in der Ernährung, um den optimalen Wert Ihrer mentalen Stärke zu erreichen.',
+          yellow: 'Der Wert Ihrer mentalen Stärke ist mittelmäßig. Sie brauchen eine marine Omega-3-Quelle in der Ernährung, um den optimalen Wert Ihrer mentalen Stärke zu erreichen.',
+          green: 'Der Wert Ihrer mentalen Stärke liegt im optimalen Bereich.'
+        }
+      },
+      'cellmembrane': {
+        apiField: 'Cell Membrane Fluidity Index',
+        title: 'Zellmembran-Fluidität',
+        ticks: [25, 9, 4, 1],
+        tickLabels: ['25:1', '9:1', '4:1', '1:1'],
+        segColors: ['red', 'yellow', 'green'],
+        reversed: true,
+        unit: ':1',
+        decimals: 1,
+        statusLabels: { red: 'Unzureichend', yellow: 'Mittelmäßig', green: 'Optimal' },
+        descriptions: {
+          red: 'Die Zellmembran-Fluidität ist unzureichend. Um eine gute Membran-Fluidität zu erreichen, erhöhen Sie den Anteil von Omega-3 und senken Sie den Anteil an gesättigten Fettsäuren.',
+          yellow: 'Die Zellmembran-Fluidität ist mittelmäßig. Optimieren Sie weiterhin die Omega-3-Zufuhr.',
+          green: 'Die Zellmembran-Fluidität liegt im optimalen Bereich.'
+        }
+      },
+      'aa_index': {
+        title: 'Arachidonsäure(AA)-Index',
+        ticks: [0, 4.5, 6.5, 9.5, 12.5, 25],
+        tickLabels: ['0', '4.5', '6.5', '9.5', '12.5', '25'],
+        segColors: ['red', 'yellow', 'green', 'yellow', 'red'],
+        reversed: false,
+        unit: '%',
+        decimals: 1,
+        statusLabels: { red: 'Kritisch', yellow: 'Erhöht', green: 'Optimal' },
+        descriptions: {
+          red: 'Misst den Spiegel der Omega-6-Fettsäure Arachidonsäure (AA), die eine wichtige Rolle bei der Regulierung von Entzündungen und Immunreaktionen spielt.',
+          yellow: 'Misst den Spiegel der Omega-6-Fettsäure Arachidonsäure (AA), die eine wichtige Rolle bei der Regulierung von Entzündungen und Immunreaktionen spielt.',
+          green: 'Der Arachidonsäure-Spiegel liegt im optimalen Bereich.'
+        }
+      }
+    };
+
+    const FAT_CATEGORY_LABELS = {
+      saturated: 'Gesättigte FS',
+      monounsaturated: 'Einfach ungesättigte FS',
+      polyunsaturated_veg: 'Mehrfach ungesättigt (pflanzlich)',
+      polyunsaturated_fish: 'Mehrfach ungesättigt (Fisch)'
+    };
+
+    const testIdInput = document.getElementById('testIdInput');
+    testIdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') fetchTest();
+    });
+
+    // ===== UTILITY: Calculate arrow position on gradient bar =====
+    function calcArrowPosition(value, config) {
+      const { ticks, reversed } = config;
+      const numSegments = ticks.length - 1;
+      const segWidth = 100 / numSegments;
+
+      for (let i = 0; i < numSegments; i++) {
+        const lo = ticks[i];
+        const hi = ticks[i + 1];
+
+        let inSegment = false;
+        if (reversed) {
+          // ticks go high to low (e.g., 125, 9, 3, 1)
+          inSegment = (i === 0 && value >= lo) ? false : // above range: clamp
+                      (value <= lo && value >= hi);
+        } else {
+          inSegment = (value >= lo && value <= hi);
+        }
+
+        if (inSegment) {
+          let fraction;
+          if (reversed) {
+            fraction = (lo - value) / (lo - hi);
+          } else {
+            fraction = (value - lo) / (hi - lo);
+          }
+          fraction = Math.max(0, Math.min(1, fraction));
+          return (i + fraction) * segWidth;
+        }
+      }
+
+      // Clamp to edges
+      if (reversed) {
+        return value >= ticks[0] ? 0 : 100;
+      } else {
+        return value <= ticks[0] ? 0 : 100;
+      }
+    }
+
+    // ===== UTILITY: Determine color for a value =====
+    function getColorForValue(value, config) {
+      const { ticks, segColors, reversed } = config;
+      const numSegments = ticks.length - 1;
+
+      for (let i = 0; i < numSegments; i++) {
+        const lo = ticks[i];
+        const hi = ticks[i + 1];
+        let inSegment;
+        if (reversed) {
+          inSegment = (value <= lo && value >= hi);
+        } else {
+          inSegment = (value >= lo && value <= hi);
+        }
+        if (inSegment) return segColors[i];
+      }
+
+      // Outside range
+      if (reversed) {
+        return value > ticks[0] ? segColors[0] : segColors[segColors.length - 1];
+      } else {
+        return value < ticks[0] ? segColors[0] : segColors[segColors.length - 1];
+      }
+    }
+
+    function formatValue(value, config) {
+      const v = parseFloat(value);
+      return v.toFixed(config.decimals) + config.unit;
+    }
+
+    // ===== FETCH =====
+    async function fetchTest() {
+      const testId = testIdInput.value.trim();
+      if (!testId) return;
+
+      const loading = document.getElementById('loading');
+      const error = document.getElementById('error');
+      const results = document.getElementById('results');
+      const btn = document.getElementById('fetchBtn');
+
+      loading.style.display = 'block';
+      error.style.display = 'none';
+      results.style.display = 'none';
+      btn.disabled = true;
+
+      try {
+        const resp = await fetch('/api/check-test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ testId })
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.error || 'Unbekannter Fehler');
+        }
+
+        const data = await resp.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('Kein Test mit dieser ID gefunden oder Ergebnisse noch nicht verfügbar.');
+        }
+
+        const meta = data[0];
+        if (meta.APIRESULT !== 'READY') {
+          throw new Error(`Testergebnis ist noch nicht fertig. Status: ${meta.APIRESULT}`);
+        }
+
+        renderResults(data);
+        results.style.display = 'block';
+      } catch (err) {
+        error.textContent = err.message;
+        error.style.display = 'block';
+      } finally {
+        loading.style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    // ===== RENDER =====
+    function renderResults(data) {
+      const [meta, markers, fattyAcids, fatCategories] = data;
+
+      // Extract AA value from fatty acids for the AA index card
+      const aaFattyAcid = fattyAcids.find(fa => fa.Fieldname === 'AA');
+      const aaValue = aaFattyAcid ? parseFloat(aaFattyAcid.Value) : null;
+
+      renderAnalysisText(markers, meta, aaValue);
+      renderPersonInfo(meta);
+      renderZinzinoSummary(markers, aaValue);
+      renderDetailMarkers(markers, aaValue);
+      renderFattyAcids(fattyAcids);
+      renderFatCategories(fatCategories);
+    }
+
+    function renderPersonInfo(meta) {
+      const el = document.getElementById('personInfo');
+      const fields = [
+        ['Test-ID', meta.TestID],
+        ['Datum', meta.Date],
+        ['Alter', meta.Age + ' Jahre'],
+        ['Geschlecht', meta.Gender === 'female' ? 'Weiblich' : meta.Gender === 'male' ? 'Männlich' : meta.Gender],
+        ['Land', meta.Country],
+        ['Gewicht', meta.weight_exact + ' kg'],
+        ['Größe', meta.height_exact + ' cm'],
+        ['Öl-Einnahme', meta.Oil === 'no' ? 'Nein' : meta.Oil],
+      ];
+      el.innerHTML = fields.map(([label, val]) => `
+        <div class="info-item">
+          <label>${label}</label>
+          <span>${val || '-'}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderZinzinoSummary(markers, aaValue) {
+      const el = document.getElementById('zinzinoSummary');
+
+      const ratio = markers.find(m => m.Fieldname.includes('Balance'));
+      const protection = markers.find(m => m.Fieldname.includes('Protection'));
+      const omega3 = markers.find(m => m.Fieldname.includes('EPA+DHA'));
+      const mental = markers.find(m => m.Fieldname.includes('Mental'));
+      const cell = markers.find(m => m.Fieldname.includes('Cell Membrane'));
+
+      const ratioVal = parseFloat(ratio.Value);
+      const protVal = parseFloat(protection.Value);
+      const omega3Val = parseFloat(omega3.Value);
+      const mentalVal = parseFloat(mental.Value);
+      const cellVal = parseFloat(cell.Value);
+
+      const ratioColor = ratio.Color;
+      const protColor = protection.Color;
+      const omega3Color = omega3.Color;
+      const mentalColor = mental.Color;
+      const cellColor = cell.Color;
+
+      const aaConfig = MARKER_CONFIGS.aa_index;
+      const aaColor = aaValue !== null ? getColorForValue(aaValue, aaConfig) : 'red';
+
+      const warnIcon = ratioColor === 'green' ? '&#10003;' : '&#9888;';
+
+      el.innerHTML = `
+        <div class="zinzino-summary">
+          <div class="hero-card bg-${ratioColor}">
+            <div class="warn-icon">${warnIcon}</div>
+            <div>
+              <div class="hero-label">Omega-6:3-Balance</div>
+              <div class="hero-value">${MARKER_CONFIGS.omega63.statusLabels[ratioColor]} ${Math.round(ratioVal)}:1</div>
+            </div>
+          </div>
+
+          <div class="protection-card border-${protColor}">
+            <div class="prot-label">Schutzwert</div>
+            <div class="prot-circle" style="border-color: ${protColor === 'red' ? '#ef4444' : protColor === 'yellow' ? '#f59e0b' : '#22c55e'}">
+              ${Math.round(protVal)}%
+            </div>
+            <div class="prot-status text-${protColor}">${MARKER_CONFIGS.protection.statusLabels[protColor]}</div>
+          </div>
+
+          <div class="summary-row">
+            ${renderMiniCard('Omega-3-Index', omega3Color, MARKER_CONFIGS.omega3.statusLabels[omega3Color], omega3Val.toFixed(1) + '%')}
+            ${renderMiniCard('Mentale Stärke', mentalColor, MARKER_CONFIGS.mental.statusLabels[mentalColor], mentalVal.toFixed(1) + ':1')}
+            ${renderMiniCard('Zellmembran-Fluidität', cellColor, MARKER_CONFIGS.cellmembrane.statusLabels[cellColor], cellVal.toFixed(1) + ':1')}
+            ${renderMiniCard('Arachidonsäure(AA)-Index', aaColor, aaConfig.statusLabels[aaColor], aaValue !== null ? aaValue.toFixed(1) + '%' : '-')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMiniCard(title, color, status, value) {
+      return `
+        <div class="mini-card border-${color}">
+          <div class="mini-title">${title}</div>
+          <div class="mini-status-row">
+            <div class="mini-indicator ind-${color}"></div>
+            <div>
+              <div class="mini-status">${status}</div>
+              <div class="mini-value text-${color}">${value}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAnalysisText(markers, meta, aaValue) {
+      const ratio = markers.find(m => m.Fieldname.includes('Balance'));
+      const protection = markers.find(m => m.Fieldname.includes('Protection'));
+      const omega3 = markers.find(m => m.Fieldname.includes('EPA+DHA'));
+      const mental = markers.find(m => m.Fieldname.includes('Mental'));
+      const cell = markers.find(m => m.Fieldname.includes('Cell Membrane'));
+
+      // Collect all 6 markers with their colors for the overview
+      const allMarkers = [
+        { name: 'Omega-6:3-Balance', color: ratio?.Color, val: ratio ? Math.round(parseFloat(ratio.Value)) + ':1' : '-' },
+        { name: 'Schutzwert', color: protection?.Color, val: protection ? Math.round(parseFloat(protection.Value)) + '%' : '-' },
+        { name: 'Omega-3-Index', color: omega3?.Color, val: omega3 ? parseFloat(omega3.Value).toFixed(1) + '%' : '-' },
+        { name: 'Mentale Stärke', color: mental?.Color, val: mental ? parseFloat(mental.Value).toFixed(1) + ':1' : '-' },
+        { name: 'Zellmembran-Fluidität', color: cell?.Color, val: cell ? parseFloat(cell.Value).toFixed(1) + ':1' : '-' },
+        { name: 'Arachidonsäure(AA)-Index', color: aaValue !== null ? getColorForValue(aaValue, MARKER_CONFIGS.aa_index) : null, val: aaValue !== null ? aaValue.toFixed(1) + '%' : '-' },
+      ];
+
+      const reds = allMarkers.filter(m => m.color === 'red').length;
+      const yellows = allMarkers.filter(m => m.color === 'yellow').length;
+      const greens = allMarkers.filter(m => m.color === 'green').length;
+      const total = allMarkers.filter(m => m.color).length;
+
+      // Overall assessment
+      let overallLabel, overallColor;
+      if (reds >= 4) { overallLabel = 'Kritisch'; overallColor = '#ef4444'; }
+      else if (reds >= 2) { overallLabel = 'Verbesserungsbedarf'; overallColor = '#f59e0b'; }
+      else if (reds >= 1) { overallLabel = 'Akzeptabel'; overallColor = '#f59e0b'; }
+      else { overallLabel = 'Gut'; overallColor = '#22c55e'; }
+
+      const colorDot = (c) => `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c === 'red' ? '#ef4444' : c === 'yellow' ? '#f59e0b' : '#22c55e'};margin-right:6px;vertical-align:middle"></span>`;
+
+      let html = '';
+
+      // Build donut chart with SVG
+      const donutSize = 130;
+      const strokeWidth = 22;
+      const radius = (donutSize - strokeWidth) / 2;
+      const circumference = 2 * Math.PI * radius;
+      const segmentLength = circumference / total;
+
+      // Order: greens first (top), then yellows, then reds (so green is prominent at top)
+      const colorOrder = [];
+      allMarkers.forEach(m => { if (m.color === 'green') colorOrder.push(m); });
+      allMarkers.forEach(m => { if (m.color === 'yellow') colorOrder.push(m); });
+      allMarkers.forEach(m => { if (m.color === 'red') colorOrder.push(m); });
+
+      const colorHex = { red: '#ef4444', yellow: '#f59e0b', green: '#22c55e' };
+      let donutSegments = '';
+      let offset = 0;
+      for (const m of colorOrder) {
+        const dash = `${segmentLength} ${circumference - segmentLength}`;
+        donutSegments += `<circle cx="${donutSize/2}" cy="${donutSize/2}" r="${radius}" fill="none" stroke="${colorHex[m.color]}" stroke-width="${strokeWidth}" stroke-dasharray="${dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${donutSize/2} ${donutSize/2})" />`;
+        offset += segmentLength;
+      }
+
+      const donutSvg = `
+        <svg width="${donutSize}" height="${donutSize}" viewBox="0 0 ${donutSize} ${donutSize}" style="flex-shrink:0">
+          <circle cx="${donutSize/2}" cy="${donutSize/2}" r="${radius}" fill="none" stroke="#e5e7eb" stroke-width="${strokeWidth}" />
+          ${donutSegments}
+          <text x="50%" y="46%" text-anchor="middle" font-size="28" font-weight="700" fill="#333">${greens}/${total}</text>
+          <text x="50%" y="62%" text-anchor="middle" font-size="11" fill="#888">im Ziel</text>
+        </svg>`;
+
+      // Score overview with donut
+      html += `<div style="display:flex;align-items:center;gap:24px;margin-bottom:20px">`;
+      html += donutSvg;
+      html += `<div>`;
+      html += `<div style="font-size:20px;font-weight:700;color:${overallColor}">${overallLabel}</div>`;
+      html += `<div style="font-size:14px;color:#666;margin-top:4px">${reds} kritische, ${yellows} auffällige, ${greens} gute Werte von ${total}</div>`;
+      html += `<div style="display:flex;gap:16px;margin-top:8px;font-size:13px">`;
+      html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ef4444;margin-right:4px;vertical-align:middle"></span>${reds} Kritisch</span>`;
+      html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f59e0b;margin-right:4px;vertical-align:middle"></span>${yellows} Auffällig</span>`;
+      html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22c55e;margin-right:4px;vertical-align:middle"></span>${greens} Gut</span>`;
+      html += `</div></div></div>`;
+
+      // Per-marker overview list
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px">`;
+      for (const m of allMarkers) {
+        if (!m.color) continue;
+        const statusMap = { red: 'Kritisch', yellow: 'Auffällig', green: 'Gut' };
+        html += `<div style="font-size:14px">${colorDot(m.color)}<strong>${m.name}</strong> ${m.val} — <span style="color:${m.color === 'red' ? '#ef4444' : m.color === 'yellow' ? '#f59e0b' : '#22c55e'}">${statusMap[m.color]}</span></div>`;
+      }
+      html += `</div>`;
+
+      // Detailed text analysis
+      const analysis = [];
+
+      if (ratio) {
+        const val = parseFloat(ratio.Value);
+        if (val > 6) {
+          analysis.push(`<strong>Omega-6/Omega-3 Verhältnis (${val}:1):</strong> Deutlich zu hoch. Das Ziel liegt bei 3:1 oder besser. Ein erhöhtes Verhältnis ist mit verstärkten Entzündungsreaktionen assoziiert.`);
+        } else if (val > 3) {
+          analysis.push(`<strong>Omega-6/Omega-3 Verhältnis (${val}:1):</strong> Leicht erhöht. Zielbereich liegt bei 3:1.`);
+        } else {
+          analysis.push(`<strong>Omega-6/Omega-3 Verhältnis (${val}:1):</strong> Im Zielbereich - ausgezeichnet!`);
+        }
+      }
+
+      if (omega3) {
+        const val = parseFloat(omega3.Value);
+        if (val < 4) {
+          analysis.push(`<strong>Omega-3 Spiegel (${val}%):</strong> Zu niedrig. Empfohlen sind mindestens 8%. Eine Erhöhung der EPA- und DHA-Zufuhr wird dringend empfohlen.`);
+        } else if (val < 8) {
+          analysis.push(`<strong>Omega-3 Spiegel (${val}%):</strong> Unter dem Zielwert von 8%. Optimierung empfohlen.`);
+        } else {
+          analysis.push(`<strong>Omega-3 Spiegel (${val}%):</strong> Im optimalen Bereich!`);
+        }
+      }
+
+      if (protection) {
+        const val = parseFloat(protection.Value);
+        if (val < 50) {
+          analysis.push(`<strong>Schutzwert (${val}%):</strong> Sehr niedrig. Zielbereich: 50-90%. Erheblicher Verbesserungsbedarf.`);
+        } else if (val < 70) {
+          analysis.push(`<strong>Schutzwert (${val}%):</strong> Im unteren Bereich. Optimale Werte liegen bei 70%+.`);
+        } else {
+          analysis.push(`<strong>Schutzwert (${val}%):</strong> Im guten Bereich!`);
+        }
+      }
+
+      if (meta.Oil === 'no' && reds >= 2) {
+        analysis.push(`<strong>Empfehlung:</strong> Aktuell werden keine Omega-3 Supplemente eingenommen. Bei diesen Werten wäre eine Supplementierung mit einem hochwertigen Omega-3 Öl (z.B. BalanceOil) sinnvoll.`);
+      }
+
+      html += analysis.map(a => `<p style="margin-bottom:8px">${a}</p>`).join('');
+
+      document.getElementById('analysisText').innerHTML = html;
+    }
+
+    // ===== DETAIL BARS =====
+    function renderDetailMarkers(markers, aaValue) {
+      const container = document.getElementById('detailMarkers');
+      const order = ['omega63', 'protection', 'omega3', 'mental', 'cellmembrane'];
+
+      let html = '';
+
+      for (const key of order) {
+        const config = MARKER_CONFIGS[key];
+        const marker = markers.find(m => m.Fieldname === config.apiField);
+        if (!marker) continue;
+
+        const value = parseFloat(marker.Value);
+        const color = marker.Color;
+        html += buildDetailCard(config, value, color);
+      }
+
+      // AA index (from fatty acids, not from markers)
+      if (aaValue !== null) {
+        const config = MARKER_CONFIGS.aa_index;
+        const color = getColorForValue(aaValue, config);
+        html += buildDetailCard(config, aaValue, color);
+      }
+
+      container.innerHTML = html;
+    }
+
+    function buildDetailCard(config, value, color) {
+      const { title, ticks, tickLabels, segColors, reversed, unit, decimals, statusLabels, descriptions } = config;
+
+      const numSegments = ticks.length - 1;
+      const segWidth = 100 / numSegments;
+      const arrowPos = calcArrowPosition(value, config);
+      const statusLabel = statusLabels[color] || '';
+      const description = descriptions[color] || '';
+      const formattedVal = value.toFixed(decimals) + unit;
+
+      // Build gradient segments
+      let segsHtml = '';
+      for (let i = 0; i < numSegments; i++) {
+        segsHtml += `<div class="seg seg-${segColors[i]}" style="width:${segWidth}%"></div>`;
+      }
+
+      // Build tick labels
+      let ticksHtml = '';
+      for (let i = 0; i <= numSegments; i++) {
+        const pos = (i / numSegments) * 100;
+        ticksHtml += `<span style="left:${pos}%">${tickLabels[i]}</span>`;
+      }
+
+      return `
+        <div class="detail-card">
+          <h3>${title}</h3>
+          <div class="detail-body">
+            <div class="detail-left">
+              <div class="detail-status-row">
+                <div class="detail-status-indicator ind-${color}"></div>
+                <span class="detail-status-text">${statusLabel}</span>
+                <span class="detail-status-value text-${color}">${formattedVal}</span>
+              </div>
+              <div class="gradient-bar-container">
+                <div class="bar-arrow" style="left:${arrowPos}%">&darr;</div>
+                <div class="gradient-bar">
+                  ${segsHtml}
+                </div>
+                <div class="tick-labels">
+                  ${ticksHtml}
+                </div>
+              </div>
+            </div>
+            <div class="detail-right">${description}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== FATTY ACIDS TABLE =====
+    const FA_INFO = {
+      PA: {
+        de: 'Palmitinsäure',
+        info: 'Häufigste gesättigte Fettsäure. Wird vom Körper selbst hergestellt und kommt in Palmöl, Fleisch und Milchprodukten vor. In Maßen wichtig für Zellmembranen und Energiegewinnung.'
+      },
+      SA: {
+        de: 'Stearinsäure',
+        info: 'Gesättigte Fettsäure, die in Kakao, Fleisch und tierischen Fetten vorkommt. Hat im Vergleich zu anderen gesättigten Fettsäuren einen neutraleren Einfluss auf den Cholesterinspiegel.'
+      },
+      OA: {
+        de: 'Ölsäure',
+        info: 'Einfach ungesättigte Omega-9-Fettsäure. Hauptbestandteil von Olivenöl. Unterstützt die Herzgesundheit und wirkt entzündungshemmend.'
+      },
+      LA: {
+        de: 'Linolsäure',
+        info: 'Essenzielle Omega-6-Fettsäure, die der Körper nicht selbst herstellen kann. Kommt in Sonnenblumenöl, Maisöl und Nüssen vor. Zu viel kann Entzündungen fördern.'
+      },
+      ALA: {
+        de: 'Alpha-Linolensäure',
+        info: 'Essenzielle Omega-3-Fettsäure aus pflanzlichen Quellen wie Leinsamen, Walnüssen und Chiasamen. Kann im Körper begrenzt zu EPA und DHA umgewandelt werden.'
+      },
+      GLA: {
+        de: 'Gamma-Linolensäure',
+        info: 'Omega-6-Fettsäure mit entzündungshemmenden Eigenschaften. Kommt in Nachtkerzenöl und Borretschöl vor. Wird aus Linolsäure gebildet.'
+      },
+      DHGLA: {
+        de: 'Dihomo-Gamma-Linolensäure',
+        info: 'Omega-6-Fettsäure und Vorstufe von entzündungshemmenden Prostaglandinen. Wird aus GLA gebildet. Kann aber auch zu Arachidonsäure (AA) umgewandelt werden.'
+      },
+      AA: {
+        de: 'Arachidonsäure',
+        info: 'Omega-6-Fettsäure, die eine Schlüsselrolle bei Entzündungsreaktionen und der Immunantwort spielt. Kommt in Fleisch, Eiern und Milchprodukten vor. Zu hohe Werte fördern Entzündungen.'
+      },
+      EPA: {
+        de: 'Eicosapentaensäure',
+        info: 'Marine Omega-3-Fettsäure mit stark entzündungshemmender Wirkung. Kommt in fettem Fisch (Lachs, Makrele, Sardinen) und Algenöl vor. Wichtig für Herz und Gefäße.'
+      },
+      DPA: {
+        de: 'Docosapentaensäure',
+        info: 'Omega-3-Fettsäure, die zwischen EPA und DHA steht. Kommt in Fischöl und Fleisch vor. Dient als Speicherform und kann in EPA oder DHA umgewandelt werden.'
+      },
+      DHA: {
+        de: 'Docosahexaensäure',
+        info: 'Marine Omega-3-Fettsäure, essenziell für Gehirn, Augen und Nervensystem. Hauptbestandteil der Gehirnmasse. Kommt in fettem Fisch und Algenöl vor. Besonders wichtig in Schwangerschaft und Kindheit.'
+      }
+    };
+
+    const FA_CATEGORIES = [
+      {
+        label: 'Gesättigte Fette',
+        acids: ['PA', 'SA']
+      },
+      {
+        label: 'Omega-9',
+        acids: ['OA']
+      },
+      {
+        label: 'Omega-6',
+        acids: ['LA', 'GLA', 'DHGLA', 'AA']
+      },
+      {
+        label: 'Omega-3',
+        acids: ['ALA', 'EPA', 'DPA', 'DHA']
+      }
+    ];
+
+    function renderFattyAcids(fattyAcids) {
+      const tbody = document.querySelector('#fattyAcidsTable tbody');
+      let html = '';
+
+      for (const cat of FA_CATEGORIES) {
+        // Category header row
+        html += `<tr class="fa-cat-row"><td colspan="5"><strong>${cat.label}</strong></td></tr>`;
+
+        for (const acidKey of cat.acids) {
+          const fa = fattyAcids.find(f => f.Fieldname === acidKey);
+          if (!fa) continue;
+
+          const dev = parseFloat(fa.Deviation);
+          let devClass = 'deviation-ok';
+          if (Math.abs(dev) > 0.5) devClass = dev > 0 ? 'deviation-pos' : 'deviation-neg';
+
+          const info = FA_INFO[fa.Fieldname];
+          const deName = info ? info.de : fa.Fieldname;
+          const tooltip = info ? `<span class="fa-info"><span class="fa-icon">i</span><span class="fa-tooltip"><strong>${deName} (${fa.Fieldname})</strong><br>${info.info}</span></span>` : '';
+
+          html += `
+            <tr>
+              <td style="padding-left:20px">${deName} ${tooltip}</td>
+              <td>${fa['Chemical name']}</td>
+              <td>${fa.Value}%</td>
+              <td>${fa.Target}%</td>
+              <td class="${devClass}">${dev > 0 ? '+' : ''}${fa.Deviation}</td>
+            </tr>
+          `;
+        }
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    function renderFatCategories(categories) {
+      const el = document.getElementById('fatCategories');
+      el.innerHTML = categories.map(cat => {
+        const label = FAT_CATEGORY_LABELS[cat.Fieldname] || cat.Fieldname;
+        const colorClass = cat.Color === 'red' ? 'text-red' : cat.Color === 'green' ? 'text-green' : '';
+        return `
+          <div class="fat-cat-card">
+            <div class="label">${label}</div>
+            <div class="value ${colorClass}">${cat.Value}%</div>
+            <div class="target">Ziel: ${cat.Target}%</div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
