@@ -97,7 +97,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
 
     const stream = client.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6-20250514',
       max_tokens: 2048,
       system: systemPrompt,
       messages: trimmedMessages
@@ -114,13 +114,33 @@ module.exports = async function handler(req, res) {
 
     stream.on('error', (err) => {
       console.error('Claude stream error:', err);
-      res.write(`data: ${JSON.stringify({ error: 'KI-Fehler aufgetreten' })}\n\n`);
+      let errorMsg = 'KI-Fehler aufgetreten';
+      if (err.status === 400 && err.message && err.message.includes('credit balance')) {
+        errorMsg = 'API-Guthaben aufgebraucht. Bitte Credits auf console.anthropic.com aufladen.';
+      } else if (err.status === 401) {
+        errorMsg = 'Ungültiger API-Schlüssel. Bitte ANTHROPIC_API_KEY prüfen.';
+      } else if (err.status === 429) {
+        errorMsg = 'Zu viele Anfragen. Bitte kurz warten und erneut versuchen.';
+      } else if (err.status === 529) {
+        errorMsg = 'Anthropic API ist überlastet. Bitte in einer Minute erneut versuchen.';
+      } else if (err.message) {
+        errorMsg = `KI-Fehler: ${err.message}`;
+      }
+      res.write(`data: ${JSON.stringify({ error: errorMsg })}\n\n`);
       res.write('data: [DONE]\n\n');
       res.end();
     });
 
   } catch (err) {
     console.error('Chat API error:', err);
-    res.status(500).json({ error: 'Fehler bei der KI-Anfrage' });
+    let errorMsg = 'Fehler bei der KI-Anfrage';
+    if (err.status === 400 && err.message && err.message.includes('credit balance')) {
+      errorMsg = 'API-Guthaben aufgebraucht. Bitte Credits auf console.anthropic.com aufladen.';
+    } else if (err.status === 401) {
+      errorMsg = 'Ungültiger API-Schlüssel. Bitte ANTHROPIC_API_KEY prüfen.';
+    } else if (err.message) {
+      errorMsg = `KI-Fehler: ${err.message}`;
+    }
+    res.status(500).json({ error: errorMsg });
   }
 };
