@@ -681,8 +681,8 @@
               <tr>
                 <th>Fettsäure</th>
                 <th class="col-chem">Chem. Name</th>
-                <th>Ist-Wert</th>
-                <th>Zielwert</th>
+                <th>Ihr Wert</th>
+                <th>Ihr Zielwert</th>
                 <th>Abw.</th>
               </tr>
             </thead>
@@ -978,7 +978,7 @@
       renderPersonInfo(meta);
       renderZinzinoSummary(markers, aaValue);
       renderDetailMarkers(markers, aaValue);
-      renderFattyAcids(fattyAcids);
+      renderFattyAcids(fattyAcids, meta);
       renderFatCategories(fatCategories);
     }
 
@@ -1343,21 +1343,45 @@
       }
     ];
 
-    function renderFattyAcids(fattyAcids) {
+    function renderFattyAcids(fattyAcids, meta) {
       const tbody = document.querySelector('#fattyAcidsTable tbody');
+      const isChild = meta && parseInt(meta.Age) < 18;
       let html = '';
 
       for (const cat of FA_CATEGORIES) {
-        // Category header row
         html += `<tr class="fa-cat-row"><td colspan="5" class="fa-cat-cell"><strong>${cat.label}</strong></td></tr>`;
 
         for (const acidKey of cat.acids) {
           const fa = fattyAcids.find(f => f.Fieldname === acidKey);
           if (!fa) continue;
 
-          const dev = parseFloat(fa.Deviation);
+          // Use age-appropriate target range and deviation
+          const targetRange = isChild ? fa.TargetChild : fa.TargetAdults;
+          const dev = isChild ? fa.DeviationChild : fa.DeviationAdult;
+          const devNum = typeof dev === 'number' ? dev : parseFloat(dev);
+
+          // Format target as range
+          let targetStr;
+          if (Array.isArray(targetRange) && targetRange.length === 2) {
+            targetStr = `${targetRange[0]} – ${targetRange[1]}%`;
+          } else {
+            targetStr = `${fa.Target}%`;
+          }
+
+          // Color: green if within range, red if above, blue if below
+          const val = parseFloat(fa.Value);
           let devClass = 'deviation-ok';
-          if (Math.abs(dev) > 0.5) devClass = dev > 0 ? 'deviation-pos' : 'deviation-neg';
+          if (Array.isArray(targetRange) && targetRange.length === 2) {
+            const lo = parseFloat(targetRange[0]);
+            const hi = parseFloat(targetRange[1]);
+            if (val < lo) devClass = 'deviation-neg';
+            else if (val > hi) devClass = 'deviation-pos';
+          } else if (Math.abs(devNum) > 0.5) {
+            devClass = devNum > 0 ? 'deviation-pos' : 'deviation-neg';
+          }
+
+          // Format deviation display
+          const devDisplay = isNaN(devNum) ? fa.Deviation : (devNum > 0 ? '+' : '') + devNum.toFixed(2);
 
           const info = FA_INFO[fa.Fieldname];
           const deName = info ? info.de : fa.Fieldname;
@@ -1368,8 +1392,8 @@
               <td style="padding-left:20px">${deName} ${tooltip}</td>
               <td class="col-chem">${fa['Chemical name']}</td>
               <td>${fa.Value}%</td>
-              <td>${fa.Target}%</td>
-              <td class="${devClass}">${dev > 0 ? '+' : ''}${fa.Deviation}</td>
+              <td>${targetStr}</td>
+              <td class="${devClass}">${devDisplay}</td>
             </tr>
           `;
         }
