@@ -1,4 +1,4 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -89,58 +89,59 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const client = new Anthropic();
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.1-flash-lite-preview',
+      systemInstruction: systemPrompt
+    });
+
+    // Convert messages to Gemini format
+    const history = trimmedMessages.slice(0, -1).map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
+
+    const lastMessage = trimmedMessages[trimmedMessages.length - 1].content;
+
+    const chat = model.startChat({ history });
 
     // Stream response using SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6-20250514',
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: trimmedMessages
-    });
+    const result = await chat.sendMessageStream(lastMessage);
 
-    stream.on('text', (text) => {
-      res.write(`data: ${JSON.stringify({ text })}\n\n`);
-    });
-
-    stream.on('end', () => {
-      res.write('data: [DONE]\n\n');
-      res.end();
-    });
-
-    stream.on('error', (err) => {
-      console.error('Claude stream error:', err);
-      let errorMsg = 'KI-Fehler aufgetreten';
-      if (err.status === 400 && err.message && err.message.includes('credit balance')) {
-        errorMsg = 'API-Guthaben aufgebraucht. Bitte Credits auf console.anthropic.com aufladen.';
-      } else if (err.status === 401) {
-        errorMsg = 'Ungültiger API-Schlüssel. Bitte ANTHROPIC_API_KEY prüfen.';
-      } else if (err.status === 429) {
-        errorMsg = 'Zu viele Anfragen. Bitte kurz warten und erneut versuchen.';
-      } else if (err.status === 529) {
-        errorMsg = 'Anthropic API ist überlastet. Bitte in einer Minute erneut versuchen.';
-      } else if (err.message) {
-        errorMsg = `KI-Fehler: ${err.message}`;
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
-      res.write(`data: ${JSON.stringify({ error: errorMsg })}\n\n`);
-      res.write('data: [DONE]\n\n');
-      res.end();
-    });
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
 
   } catch (err) {
     console.error('Chat API error:', err);
-    let errorMsg = 'Fehler bei der KI-Anfrage';
-    if (err.status === 400 && err.message && err.message.includes('credit balance')) {
-      errorMsg = 'API-Guthaben aufgebraucht. Bitte Credits auf console.anthropic.com aufladen.';
-    } else if (err.status === 401) {
-      errorMsg = 'Ungültiger API-Schlüssel. Bitte ANTHROPIC_API_KEY prüfen.';
+    let errorMsg = 'KI-Fehler aufgetreten';
+    if (err.message && err.message.includes('API_KEY_INVALID')) {
+      errorMsg = 'Ungültiger API-Schlüssel. Bitte GOOGLE_API_KEY prüfen.';
+    } else if (err.message && err.message.includes('RESOURCE_EXHAUSTED')) {
+      errorMsg = 'API-Kontingent erschöpft. Bitte später erneut versuchen.';
+    } else if (err.message && err.message.includes('PERMISSION_DENIED')) {
+      errorMsg = 'API-Zugriff verweigert. Bitte Gemini API in der Google Cloud Console aktivieren.';
     } else if (err.message) {
       errorMsg = `KI-Fehler: ${err.message}`;
     }
-    res.status(500).json({ error: errorMsg });
+
+    // If headers not sent yet, send JSON error
+    if (!res.headersSent) {
+      res.status(500).json({ error: errorMsg });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: errorMsg })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
   }
 };
