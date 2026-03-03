@@ -1,18 +1,10 @@
-require('dotenv').config();
-const express = require('express');
+const Anthropic = require('@anthropic-ai/sdk');
+const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const fs = require('fs');
-const Anthropic = require('@anthropic-ai/sdk');
 
-const app = express();
-const PORT = 3000;
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-// Load knowledge base for chat
-const WISSEN_DIR = path.join(__dirname, 'Wissen');
+// Load knowledge base files once at cold start
+const WISSEN_DIR = path.join(__dirname, '..', 'Wissen');
 const knowledgeFiles = [
   'system_prompt.md',
   'test_interpretation.md',
@@ -21,6 +13,7 @@ const knowledgeFiles = [
   'produkte.md',
   'faq.md'
 ];
+
 let knowledgeBase = '';
 try {
   knowledgeBase = knowledgeFiles
@@ -28,13 +21,6 @@ try {
     .join('\n\n---\n\n');
 } catch (err) {
   console.error('Error loading knowledge base:', err.message);
-}
-
-function generateToken() {
-  return crypto
-    .createHmac('sha256', process.env.APP_PASSWORD)
-    .update('zinzino-session')
-    .digest('hex');
 }
 
 function formatTestContext(ctx) {
@@ -59,73 +45,30 @@ function formatTestContext(ctx) {
   }
   if (ctx.fattyAcids) {
     text += '## Fettsäure-Profil\n';
+    text += '| Fettsäure | Chem. Name | Ist-Wert | Zielwert | Abweichung |\n';
+    text += '|-----------|-----------|----------|----------|------------|\n';
     for (const fa of ctx.fattyAcids) {
-      text += `- ${fa.Fieldname} (${fa['Chemical name']}): Ist ${fa.Value}%, Ziel ${fa.Target}%, Abweichung ${fa.Deviation}\n`;
+      text += `| ${fa.Fieldname} | ${fa['Chemical name']} | ${fa.Value}% | ${fa.Target}% | ${fa.Deviation} |\n`;
     }
     text += '\n';
   }
   return text;
 }
 
-// Proxy endpoint to avoid CORS issues
-app.post('/api/check-test', async (req, res) => {
-  const { testId } = req.body;
-
-  if (!testId || testId.trim().length === 0) {
-    return res.status(400).json({ error: 'Test-ID ist erforderlich' });
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const sanitizedId = testId.trim().replace(/[^a-zA-Z0-9]/g, '');
-
-  // Determine which endpoint to use based on test ID suffix
-  let endpoint = 'ajax.check_results.php'; // Default: BalanceTest
-  const upper = sanitizedId.toUpperCase();
-  if (upper.endsWith('GH')) {
-    endpoint = 'ajax.check_results_simple_guthealth.php';
-  } else if (upper.endsWith('VD')) {
-    endpoint = 'ajax.check_results_vitamind.php';
-  } else if (upper.endsWith('HC')) {
-    endpoint = 'ajax.check_results_simple_hba1c.php';
-  }
-
-  try {
-    const response = await fetch(
-      `https://www.zinzinotest.com/modules/Menu/output/${endpoint}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `val=${encodeURIComponent(sanitizedId)}&type=1`,
-      }
-    );
-
-    if (!response.ok) {
-      return res.status(502).json({ error: 'Zinzino-Server nicht erreichbar' });
-    }
-
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error('API error:', err);
-    res.status(500).json({ error: 'Fehler beim Abrufen der Testergebnisse' });
-  }
-});
-
-// Login endpoint
-app.post('/api/login', async (req, res) => {
-  const { password } = req.body;
-
-  if (!password || password !== process.env.APP_PASSWORD) {
-    return res.status(401).json({ error: 'Falsches Passwort' });
-  }
-
-  res.json({ success: true, token: generateToken() });
-});
-
-// Chat endpoint with Claude streaming
-app.post('/api/chat', async (req, res) => {
   const { token, messages, testContext } = req.body;
 
-  if (!token || token !== generateToken()) {
+  // Verify token
+  const expectedToken = crypto
+    .createHmac('sha256', process.env.APP_PASSWORD)
+    .update('zinzino-session')
+    .digest('hex');
+
+  if (!token || token !== expectedToken) {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }
 
@@ -133,9 +76,12 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Keine Nachrichten übergeben' });
   }
 
+  // Trim conversation history to last 20 messages to control costs
   const trimmedMessages = messages.slice(-20);
 
+  // Build system prompt
   let systemPrompt = knowledgeBase;
+
   if (testContext) {
     systemPrompt += '\n\n---\n\n# Aktuelle Testergebnisse des Kunden\n\n';
     systemPrompt += 'Die folgenden Testergebnisse wurden geladen. Nutze sie für personalisierte Beratung, Gesprächsleitfäden und Empfehlungen.\n\n';
@@ -145,6 +91,7 @@ app.post('/api/chat', async (req, res) => {
   try {
     const client = new Anthropic();
 
+    // Stream response using SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -171,12 +118,9 @@ app.post('/api/chat', async (req, res) => {
       res.write('data: [DONE]\n\n');
       res.end();
     });
+
   } catch (err) {
     console.error('Chat API error:', err);
     res.status(500).json({ error: 'Fehler bei der KI-Anfrage' });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
-});
+};
