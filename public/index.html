@@ -777,8 +777,8 @@
         </div>
         <div class="tab-chat" id="testChat" style="display:none">
           <div class="chat-openers" id="testOpeners">
-            <button class="chat-opener-btn" onclick="sendOpener('test', 'Erkläre mir meine Testergebnisse im Detail')">
-              <span class="opener-icon">&#128200;</span>Erkläre mir meine Testergebnisse
+            <button class="chat-opener-btn" onclick="sendOpener('test', 'Erkläre die Testergebnisse im Detail')">
+              <span class="opener-icon">&#128200;</span>Erkläre die Testergebnisse im Detail
             </button>
             <button class="chat-opener-btn" onclick="sendOpener('test', 'Was kann ich tun, um meine Werte zu verbessern?')">
               <span class="opener-icon">&#127793;</span>Wie verbessere ich meine Werte?
@@ -1531,15 +1531,75 @@
     }
 
     function renderMarkdown(text) {
-      return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>');
+      // Escape HTML first
+      text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      // Code blocks (preserve content)
+      text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Process line by line for block elements
+      const lines = text.split('\n');
+      const result = [];
+      let inList = false;
+      let listType = '';
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        const isListItem = /^[\-\*] (.+)/.test(line) || /^\d+\. (.+)/.test(line);
+
+        // Close list before non-list block elements
+        if (inList && !isListItem) {
+          result.push(listType === 'ol' ? '</ol>' : '</ul>');
+          inList = false;
+        }
+
+        // Headings
+        if (/^#### (.+)/.test(line)) { line = '<strong style="font-size:14px;display:block;margin:12px 0 4px">' + line.replace(/^#### /, '') + '</strong>'; }
+        else if (/^### (.+)/.test(line)) { line = '<strong style="font-size:15px;display:block;margin:14px 0 6px">' + line.replace(/^### /, '') + '</strong>'; }
+        else if (/^## (.+)/.test(line)) { line = '<strong style="font-size:16px;display:block;margin:16px 0 6px">' + line.replace(/^## /, '') + '</strong>'; }
+        else if (/^# (.+)/.test(line)) { line = '<strong style="font-size:17px;display:block;margin:16px 0 8px">' + line.replace(/^# /, '') + '</strong>'; }
+        // Horizontal rule
+        else if (/^---+$/.test(line.trim())) { line = '<hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">'; }
+        // Blockquote
+        else if (/^&gt; (.+)/.test(line)) { line = '<div style="border-left:3px solid #4a6cf7;padding:4px 12px;color:#555;margin:8px 0">' + line.replace(/^&gt; /, '') + '</div>'; }
+        // Unordered list
+        else if (/^[\-\*] (.+)/.test(line)) {
+          const content = line.replace(/^[\-\*] /, '');
+          if (!inList || listType !== 'ul') {
+            if (inList) result.push(listType === 'ol' ? '</ol>' : '</ul>');
+            result.push('<ul style="margin:6px 0;padding-left:20px">');
+            inList = true; listType = 'ul';
+          }
+          line = '<li>' + content + '</li>';
+        }
+        // Ordered list
+        else if (/^\d+\. (.+)/.test(line)) {
+          const content = line.replace(/^\d+\. /, '');
+          if (!inList || listType !== 'ol') {
+            if (inList) result.push(listType === 'ol' ? '</ol>' : '</ul>');
+            result.push('<ol style="margin:6px 0;padding-left:20px">');
+            inList = true; listType = 'ol';
+          }
+          line = '<li>' + content + '</li>';
+        }
+        result.push(line);
+      }
+      if (inList) result.push(listType === 'ol' ? '</ol>' : '</ul>');
+
+      text = result.join('\n');
+
+      // Inline formatting
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+      // Remaining newlines to <br> (but not after block elements)
+      text = text.replace(/\n(?!<)/g, '<br>');
+      // Clean up excessive <br> after block elements
+      text = text.replace(/(<\/(?:li|ul|ol|hr|div|strong)>)\s*<br>/g, '$1');
+      text = text.replace(/<br>\s*(<(?:ul|ol|hr|div))/g, '$1');
+
+      return text;
     }
 
     // ===== LOGIN DROPDOWN =====
