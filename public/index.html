@@ -419,7 +419,11 @@
       justify-content: space-between;
       margin-bottom: 32px;
     }
-    .app-header-left { flex: 1; }
+    .app-header-left { flex: 1; display: flex; align-items: center; gap: 16px; }
+    .profile-avatar {
+      width: 54px; height: 54px; border-radius: 50%;
+      object-fit: cover; border: 3px solid #c4b5fd; flex-shrink: 0;
+    }
     .app-header-right { flex-shrink: 0; position: relative; }
 
     /* Login Dropdown */
@@ -480,7 +484,6 @@
 
     /* ===== CONTENT TABS ===== */
     .content-tabs {
-      margin-top: 32px;
       margin-bottom: 24px;
     }
     .tab-bar {
@@ -510,10 +513,8 @@
     .tab-btn:disabled:hover { color: #888; background: none; }
     .tab-icon { font-size: 18px; }
     .tab-content {
-      background: white;
-      border-radius: 0 0 12px 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      overflow: hidden;
+      background: transparent;
+      overflow: visible;
     }
     .tab-login-prompt {
       text-align: center;
@@ -603,22 +604,59 @@
     .chat-input-row button:hover { background: #3a5ce5; }
     .chat-input-row button:disabled { background: #999; cursor: not-allowed; }
 
-    .usage-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 20px;
-      font-size: 11px;
-      color: #888;
-      border-top: 1px solid #eee;
-      background: #fafafa;
-      border-radius: 0 0 16px 16px;
+    /* Tab Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* KI Agent Card */
+    .ki-agent-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-top: 24px;
     }
-    .usage-bar span { white-space: nowrap; }
-    .usage-detail { display: flex; gap: 12px; }
+    .chat-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a2e;
+      padding: 20px 24px 0;
+      margin: 0;
+    }
+
+    /* Chat Openers */
+    .chat-openers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 20px 24px;
+    }
+    .chat-opener-btn {
+      background: #f8f9ff;
+      border: 1px solid #dde4ff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .chat-opener-btn:hover {
+      background: #eef1ff;
+      border-color: #4a6cf7;
+      box-shadow: 0 2px 8px rgba(74, 108, 247, 0.15);
+    }
+    .opener-icon { font-size: 18px; flex-shrink: 0; line-height: 1.2; }
 
     @media (max-width: 600px) {
       .app-header { align-items: center; }
+      .profile-avatar { width: 42px; height: 42px; }
+      .app-header-left { gap: 12px; }
       .app-header-left h1 { font-size: 20px; }
       .app-header-left .subtitle { font-size: 13px; }
       .login-panel { width: 260px; right: -8px; }
@@ -627,6 +665,7 @@
       .chat-messages { height: 300px; padding: 16px; }
       .chat-input-row { padding: 12px 16px; }
       .chat-bubble { max-width: 90%; }
+      .chat-openers { grid-template-columns: 1fr; padding: 16px; }
     }
     @media (max-width: 400px) {
       .tab-btn { font-size: 12px; padding: 10px 6px; }
@@ -637,8 +676,11 @@
   <div class="container">
     <header class="app-header">
       <div class="app-header-left">
-        <h1>Zinzino Test Analyse</h1>
-        <p class="subtitle">Test-ID eingeben, um Ergebnisse abzurufen und zu analysieren</p>
+        <img src="Picto-Bianka.png" alt="Profilbild" class="profile-avatar" />
+        <div class="header-text">
+          <h1>Zinzino Test Analyse</h1>
+          <p class="subtitle">Test-ID eingeben, um Ergebnisse abzurufen und zu analysieren</p>
+        </div>
       </div>
       <div class="app-header-right">
         <div class="login-dropdown" id="loginDropdown">
@@ -661,87 +703,127 @@
       </div>
     </header>
 
-    <div class="search-box">
-      <input type="text" id="testIdInput" placeholder="Test-ID eingeben (z.B. 24HM99626342BT)" />
-      <button id="fetchBtn" onclick="fetchTest()">Analysieren</button>
-    </div>
-
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Testergebnisse werden geladen und analysiert...</p>
-    </div>
-
-    <div class="error" id="error"></div>
-
-    <div id="results">
-      <div class="analysis-card">
-        <h2>Analyse-Zusammenfassung</h2>
-        <div class="analysis-text" id="analysisText"></div>
-      </div>
-
-      <div class="person-info" id="personInfo"></div>
-      <div id="zinzinoSummary"></div>
-
-      <div class="detail-markers">
-        <h2>Einzelergebnisse</h2>
-        <div id="detailMarkers"></div>
-      </div>
-
-      <div class="fatty-acids-card">
-        <h2>Fettsäure-Profil (Detail)</h2>
-        <div class="table-scroll">
-          <table id="fattyAcidsTable">
-            <thead>
-              <tr>
-                <th>Fettsäure</th>
-                <th class="col-chem">Chem. Name</th>
-                <th>Ihr Zielwert</th>
-                <th>Ihr Wert</th>
-                <th>Abw.</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <section>
-        <h2>Fettsäure-Kategorien</h2>
-        <div class="fat-categories" id="fatCategories"></div>
-      </section>
-    </div>
-
-    <div class="content-tabs" id="contentTabs">
+    <!-- Top-Level Tabs -->
+    <div class="content-tabs">
       <div class="tab-bar">
-        <button class="tab-btn active" id="tabBeratung" onclick="switchTab('beratung')">
-          <span class="tab-icon">&#128172;</span>Testbasierte Beratung
+        <button class="tab-btn active" id="tabTestauswertung" onclick="switchTab('testauswertung')">
+          <span class="tab-icon">&#128202;</span>Testauswertung
         </button>
-        <button class="tab-btn" id="tabAllgemein" onclick="switchTab('allgemein')">
-          <span class="tab-icon">&#10067;</span>Allgemeine Fragen
+        <button class="tab-btn" id="tabKIAgent" onclick="switchTab('kiagent')">
+          <span class="tab-icon">&#129302;</span>KI Agent
         </button>
       </div>
-      <div class="tab-content" id="tabContent">
-        <div class="tab-login-prompt" id="tabLoginPrompt">
+    </div>
+
+    <!-- Pane: Testauswertung -->
+    <div class="tab-pane active" id="paneTestauswertung">
+      <div class="search-box">
+        <input type="text" id="testIdInput" placeholder="Test-ID eingeben (z.B. 24HM99626342BT)" />
+        <button id="fetchBtn" onclick="fetchTest()">Analysieren</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Testergebnisse werden geladen und analysiert...</p>
+      </div>
+
+      <div class="error" id="error"></div>
+
+      <div id="results">
+        <div class="analysis-card">
+          <h2>Analyse-Zusammenfassung</h2>
+          <div class="analysis-text" id="analysisText"></div>
+        </div>
+
+        <div class="person-info" id="personInfo"></div>
+        <div id="zinzinoSummary"></div>
+
+        <div class="detail-markers">
+          <h2>Einzelergebnisse</h2>
+          <div id="detailMarkers"></div>
+        </div>
+
+        <div class="fatty-acids-card">
+          <h2>Fettsäure-Profil (Detail)</h2>
+          <div class="table-scroll">
+            <table id="fattyAcidsTable">
+              <thead>
+                <tr>
+                  <th>Fettsäure</th>
+                  <th class="col-chem">Chem. Name</th>
+                  <th>Ihr Zielwert</th>
+                  <th>Ihr Wert</th>
+                  <th>Abw.</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <section>
+          <h2>Fettsäure-Kategorien</h2>
+          <div class="fat-categories" id="fatCategories"></div>
+        </section>
+      </div>
+
+      <!-- Test-Chat (unterhalb der Ergebnisse) -->
+      <div class="ki-agent-card" id="testChatSection" style="display:none">
+        <h3 class="chat-section-title">Fragen zu Ihren Testergebnissen</h3>
+        <div class="tab-login-prompt" id="testLoginPrompt">
           <div class="prompt-icon">&#128274;</div>
-          <p>Melden Sie sich an, um die KI-Beratung zu nutzen.</p>
+          <p>Melden Sie sich an, um Fragen zu Ihren Ergebnissen zu stellen.</p>
           <button onclick="toggleLoginDropdown()" class="prompt-login-btn">Jetzt anmelden</button>
         </div>
-        <div class="tab-chat" id="tabChat" style="display:none">
-          <div class="chat-messages" id="chatMessages">
-            <div class="chat-msg assistant">
-              <div class="chat-bubble">Hallo! Hier erhalten Sie eine personalisierte Beratung basierend auf Ihren geladenen Testergebnissen.</div>
-            </div>
+        <div class="tab-chat" id="testChat" style="display:none">
+          <div class="chat-openers" id="testOpeners">
+            <button class="chat-opener-btn" onclick="sendOpener('test', 'Erkläre mir meine Testergebnisse im Detail')">
+              <span class="opener-icon">&#128200;</span>Erkläre mir meine Testergebnisse
+            </button>
+            <button class="chat-opener-btn" onclick="sendOpener('test', 'Was kann ich tun, um meine Werte zu verbessern?')">
+              <span class="opener-icon">&#127793;</span>Wie verbessere ich meine Werte?
+            </button>
+            <button class="chat-opener-btn" onclick="sendOpener('test', 'Wie dosiere ich BalanceOil basierend auf meinen Werten?')">
+              <span class="opener-icon">&#128167;</span>Richtige BalanceOil-Dosierung
+            </button>
           </div>
+          <div class="chat-messages" id="testChatMessages"></div>
           <div class="chat-input-row">
-            <textarea id="chatInput" placeholder="Ihre Frage eingeben..." rows="2"></textarea>
-            <button id="chatSendBtn" onclick="sendChat()">Senden</button>
+            <textarea id="testChatInput" placeholder="Frage zu Ihren Ergebnissen..." rows="2"></textarea>
+            <button id="testChatSendBtn" onclick="sendChat('test')">Senden</button>
           </div>
-          <div class="usage-bar" id="usageBar" style="display:none">
-            <div class="usage-detail">
-              <span id="usageTokens">Tokens: 0</span>
-              <span id="usageCost">Kosten: $0.000</span>
-            </div>
-            <span id="usageRequests">Anfragen: 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pane: KI Agent -->
+    <div class="tab-pane" id="paneKIAgent">
+      <div class="ki-agent-card">
+        <h3 class="chat-section-title">KI-Berater &mdash; Allgemeine Fragen</h3>
+        <div class="tab-login-prompt" id="agentLoginPrompt">
+          <div class="prompt-icon">&#128274;</div>
+          <p>Melden Sie sich an, um den KI-Agenten zu nutzen.</p>
+          <button onclick="toggleLoginDropdown()" class="prompt-login-btn">Jetzt anmelden</button>
+        </div>
+        <div class="tab-chat" id="agentChat" style="display:none">
+          <div class="chat-openers" id="agentOpeners">
+            <button class="chat-opener-btn" onclick="sendOpener('agent', 'Wie funktioniert der BalanceTest?')">
+              <span class="opener-icon">&#128300;</span>Wie funktioniert der BalanceTest?
+            </button>
+            <button class="chat-opener-btn" onclick="sendOpener('agent', 'Wie nehme ich BalanceOil richtig ein?')">
+              <span class="opener-icon">&#128167;</span>Wie nehme ich BalanceOil richtig ein?
+            </button>
+            <button class="chat-opener-btn" onclick="sendOpener('agent', 'Was verbessert meine Omega-Werte?')">
+              <span class="opener-icon">&#127813;</span>Was verbessert meine Omega-Werte?
+            </button>
+            <button class="chat-opener-btn" onclick="sendOpener('agent', 'Welche Zinzino-Produkte gibt es und was bewirken sie?')">
+              <span class="opener-icon">&#128230;</span>Welche Produkte gibt es?
+            </button>
+          </div>
+          <div class="chat-messages" id="agentChatMessages"></div>
+          <div class="chat-input-row">
+            <textarea id="agentChatInput" placeholder="Ihre Frage eingeben..." rows="2"></textarea>
+            <button id="agentChatSendBtn" onclick="sendChat('agent')">Senden</button>
           </div>
         </div>
       </div>
@@ -973,11 +1055,10 @@
         // Store test context for AI chat
         const testContext = { meta: data[0], markers: data[1], fattyAcids: data[2] };
         sessionStorage.setItem('zinzino_test', JSON.stringify(testContext));
-        // Update chat greeting if on beratung tab and logged in
-        if (sessionStorage.getItem('zinzino_token') && activeTab === 'beratung' && chatMessages.beratung.length === 0) {
-          document.getElementById('chatMessages').innerHTML =
-            '<div class="chat-msg assistant"><div class="chat-bubble">Testergebnisse geladen! Ich kann Ihnen jetzt eine personalisierte Beratung auf Basis dieser Ergebnisse geben. Was möchten Sie wissen?</div></div>';
-        }
+
+        // Show test chat section below results
+        document.getElementById('testChatSection').style.display = 'block';
+        updateOpeners('test');
       } catch (err) {
         error.textContent = err.message;
         error.style.display = 'block';
@@ -1439,34 +1520,9 @@
     }
 
     // ===== LOGIN & CHAT =====
-    let chatMessages = { beratung: [], allgemein: [] };
-    let activeTab = 'beratung';
+    let chatMessages = { test: [], agent: [] };
+    let activeTab = 'testauswertung';
     let isStreaming = false;
-
-    // Usage tracking (session-based)
-    let usageStats = { inputTokens: 0, outputTokens: 0, totalTokens: 0, requests: 0 };
-    // Gemini 3.1 Flash Lite pricing (per 1M tokens)
-    const PRICE_INPUT = 0.25;   // $/1M input tokens
-    const PRICE_OUTPUT = 1.50;  // $/1M output tokens
-
-    function updateUsageDisplay(usageMeta) {
-      if (!usageMeta) return;
-      usageStats.inputTokens += (usageMeta.promptTokenCount || 0);
-      usageStats.outputTokens += (usageMeta.candidatesTokenCount || 0);
-      usageStats.totalTokens += (usageMeta.totalTokenCount || 0);
-      usageStats.requests++;
-
-      const cost = (usageStats.inputTokens / 1e6) * PRICE_INPUT
-                 + (usageStats.outputTokens / 1e6) * PRICE_OUTPUT;
-
-      document.getElementById('usageTokens').textContent =
-        `Tokens: ${usageStats.totalTokens.toLocaleString('de-DE')}`;
-      document.getElementById('usageCost').textContent =
-        `Kosten: $${cost.toFixed(4)}`;
-      document.getElementById('usageRequests').textContent =
-        `Anfragen: ${usageStats.requests}`;
-      document.getElementById('usageBar').style.display = 'flex';
-    }
 
     function escapeHtml(str) {
       const div = document.createElement('div');
@@ -1503,8 +1559,6 @@
       const trigger = document.getElementById('loginTrigger');
       const formPanel = document.getElementById('loginFormPanel');
       const loggedInPanel = document.getElementById('loggedInPanel');
-      const tabLoginPrompt = document.getElementById('tabLoginPrompt');
-      const tabChat = document.getElementById('tabChat');
 
       if (token) {
         trigger.classList.add('logged-in');
@@ -1512,16 +1566,26 @@
         trigger.title = 'Angemeldet';
         formPanel.style.display = 'none';
         loggedInPanel.style.display = 'block';
-        tabLoginPrompt.style.display = 'none';
-        tabChat.style.display = 'flex';
+        // Test chat
+        document.getElementById('testLoginPrompt').style.display = 'none';
+        document.getElementById('testChat').style.display = 'flex';
+        // Agent chat
+        document.getElementById('agentLoginPrompt').style.display = 'none';
+        document.getElementById('agentChat').style.display = 'flex';
+        updateOpeners('test');
+        updateOpeners('agent');
       } else {
         trigger.classList.remove('logged-in');
         trigger.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
         trigger.title = 'Anmelden';
         formPanel.style.display = 'block';
         loggedInPanel.style.display = 'none';
-        tabLoginPrompt.style.display = 'block';
-        tabChat.style.display = 'none';
+        // Test chat
+        document.getElementById('testLoginPrompt').style.display = 'block';
+        document.getElementById('testChat').style.display = 'none';
+        // Agent chat
+        document.getElementById('agentLoginPrompt').style.display = 'block';
+        document.getElementById('agentChat').style.display = 'none';
       }
     }
 
@@ -1555,7 +1619,6 @@
         document.getElementById('loginPassword').value = '';
         document.getElementById('loginPanel').classList.remove('open');
         checkLoginState();
-        restoreChatHistory(activeTab);
       } catch (err) {
         errEl.textContent = 'Verbindungsfehler';
         errEl.style.display = 'block';
@@ -1564,14 +1627,16 @@
 
     function logout() {
       sessionStorage.removeItem('zinzino_token');
-      chatMessages = { beratung: [], allgemein: [] };
-      activeTab = 'beratung';
-      usageStats = { inputTokens: 0, outputTokens: 0, totalTokens: 0, requests: 0 };
-      document.getElementById('usageBar').style.display = 'none';
-      document.getElementById('tabBeratung').classList.add('active');
-      document.getElementById('tabAllgemein').classList.remove('active');
-      restoreChatHistory('beratung');
+      chatMessages = { test: [], agent: [] };
+      document.getElementById('testChatMessages').innerHTML = '';
+      document.getElementById('agentChatMessages').innerHTML = '';
       document.getElementById('loginPanel').classList.remove('open');
+      // Switch back to testauswertung
+      activeTab = 'testauswertung';
+      document.getElementById('tabTestauswertung').classList.add('active');
+      document.getElementById('tabKIAgent').classList.remove('active');
+      document.getElementById('paneTestauswertung').classList.add('active');
+      document.getElementById('paneKIAgent').classList.remove('active');
       checkLoginState();
     }
 
@@ -1579,36 +1644,36 @@
     function switchTab(tab) {
       if (isStreaming) return;
       activeTab = tab;
-      document.getElementById('tabBeratung').classList.toggle('active', tab === 'beratung');
-      document.getElementById('tabAllgemein').classList.toggle('active', tab === 'allgemein');
-
-      const token = sessionStorage.getItem('zinzino_token');
-      if (!token) {
-        document.getElementById('tabLoginPrompt').style.display = 'block';
-        document.getElementById('tabChat').style.display = 'none';
-        return;
-      }
-
-      restoreChatHistory(tab);
+      document.getElementById('tabTestauswertung').classList.toggle('active', tab === 'testauswertung');
+      document.getElementById('tabKIAgent').classList.toggle('active', tab === 'kiagent');
+      document.getElementById('paneTestauswertung').classList.toggle('active', tab === 'testauswertung');
+      document.getElementById('paneKIAgent').classList.toggle('active', tab === 'kiagent');
     }
 
-    function restoreChatHistory(tab) {
-      const msgArea = document.getElementById('chatMessages');
-      const history = chatMessages[tab];
+    // ===== CHAT OPENERS =====
+    function updateOpeners(mode) {
+      const openersId = mode === 'test' ? 'testOpeners' : 'agentOpeners';
+      const openers = document.getElementById(openersId);
+      if (!openers) return;
 
-      if (!history || history.length === 0) {
-        let greeting;
-        if (tab === 'beratung') {
-          const hasTest = sessionStorage.getItem('zinzino_test');
-          greeting = hasTest
-            ? 'Testergebnisse geladen! Ich kann Ihnen eine personalisierte Beratung auf Basis Ihrer Ergebnisse geben. Was möchten Sie wissen?'
-            : 'Laden Sie zuerst einen Test, um die testbasierte Beratung zu nutzen. Geben Sie oben eine Test-ID ein.';
-        } else {
-          greeting = 'Stellen Sie mir allgemeine Fragen zu Fettsäuren, Omega-3, Zinzino-Produkten und mehr.';
-        }
-        msgArea.innerHTML = `<div class="chat-msg assistant"><div class="chat-bubble">${greeting}</div></div>`;
-        return;
+      if (chatMessages[mode].length === 0) {
+        openers.style.display = 'grid';
+      } else {
+        openers.style.display = 'none';
       }
+    }
+
+    function sendOpener(mode, text) {
+      const inputId = mode === 'test' ? 'testChatInput' : 'agentChatInput';
+      document.getElementById(inputId).value = text;
+      sendChat(mode);
+    }
+
+    // ===== CHAT =====
+    function restoreChatHistory(mode) {
+      const msgAreaId = mode === 'test' ? 'testChatMessages' : 'agentChatMessages';
+      const msgArea = document.getElementById(msgAreaId);
+      const history = chatMessages[mode];
 
       msgArea.innerHTML = '';
       for (const msg of history) {
@@ -1621,25 +1686,30 @@
         msgArea.appendChild(div);
       }
       msgArea.scrollTop = msgArea.scrollHeight;
+      updateOpeners(mode);
     }
 
-    // ===== CHAT =====
-    async function sendChat() {
-      const input = document.getElementById('chatInput');
+    async function sendChat(mode) {
+      const inputId = mode === 'test' ? 'testChatInput' : 'agentChatInput';
+      const msgAreaId = mode === 'test' ? 'testChatMessages' : 'agentChatMessages';
+      const sendBtnId = mode === 'test' ? 'testChatSendBtn' : 'agentChatSendBtn';
+
+      const input = document.getElementById(inputId);
       const msg = input.value.trim();
       if (!msg || isStreaming) return;
 
       const token = sessionStorage.getItem('zinzino_token');
       if (!token) return;
 
-      const msgArea = document.getElementById('chatMessages');
+      const msgArea = document.getElementById(msgAreaId);
       const userDiv = document.createElement('div');
       userDiv.className = 'chat-msg user';
       userDiv.innerHTML = `<div class="chat-bubble">${escapeHtml(msg)}</div>`;
       msgArea.appendChild(userDiv);
 
-      chatMessages[activeTab].push({ role: 'user', content: msg });
+      chatMessages[mode].push({ role: 'user', content: msg });
       input.value = '';
+      updateOpeners(mode);
       msgArea.scrollTop = msgArea.scrollHeight;
 
       const assistDiv = document.createElement('div');
@@ -1651,16 +1721,16 @@
       msgArea.appendChild(assistDiv);
       msgArea.scrollTop = msgArea.scrollHeight;
 
-      const body = { token, messages: chatMessages[activeTab] };
-      if (activeTab === 'beratung') {
+      const body = { token, messages: chatMessages[mode] };
+      if (mode === 'test') {
         const testData = sessionStorage.getItem('zinzino_test');
         if (testData) body.testContext = JSON.parse(testData);
       }
 
       isStreaming = true;
-      document.getElementById('chatSendBtn').disabled = true;
-      document.getElementById('tabBeratung').disabled = true;
-      document.getElementById('tabAllgemein').disabled = true;
+      document.getElementById(sendBtnId).disabled = true;
+      document.getElementById('tabTestauswertung').disabled = true;
+      document.getElementById('tabKIAgent').disabled = true;
       let fullText = '';
 
       try {
@@ -1674,9 +1744,9 @@
           const errData = await resp.json();
           bubble.innerHTML = `<em style="color:#ef4444">${escapeHtml(errData.error || 'Fehler')}</em>`;
           isStreaming = false;
-          document.getElementById('chatSendBtn').disabled = false;
-          document.getElementById('tabBeratung').disabled = false;
-          document.getElementById('tabAllgemein').disabled = false;
+          document.getElementById(sendBtnId).disabled = false;
+          document.getElementById('tabTestauswertung').disabled = false;
+          document.getElementById('tabKIAgent').disabled = false;
           return;
         }
 
@@ -1704,9 +1774,6 @@
                 bubble.innerHTML = renderMarkdown(fullText);
                 msgArea.scrollTop = msgArea.scrollHeight;
               }
-              if (parsed.usage) {
-                updateUsageDisplay(parsed.usage);
-              }
               if (parsed.error) {
                 bubble.innerHTML += `<br><em style="color:#ef4444">${escapeHtml(parsed.error)}</em>`;
               }
@@ -1715,31 +1782,28 @@
         }
 
         if (fullText) {
-          chatMessages[activeTab].push({ role: 'assistant', content: fullText });
+          chatMessages[mode].push({ role: 'assistant', content: fullText });
         }
       } catch (err) {
         bubble.innerHTML = `<em style="color:#ef4444">Verbindungsfehler: ${escapeHtml(err.message)}</em>`;
       } finally {
         isStreaming = false;
-        document.getElementById('chatSendBtn').disabled = false;
-        document.getElementById('tabBeratung').disabled = false;
-        document.getElementById('tabAllgemein').disabled = false;
+        document.getElementById(sendBtnId).disabled = false;
+        document.getElementById('tabTestauswertung').disabled = false;
+        document.getElementById('tabKIAgent').disabled = false;
         msgArea.scrollTop = msgArea.scrollHeight;
       }
     }
 
     // Chat input: Enter to send, Shift+Enter for newline
-    document.getElementById('chatInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendChat();
-      }
+    document.getElementById('testChatInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat('test'); }
+    });
+    document.getElementById('agentChatInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat('agent'); }
     });
 
-    // Enter key for test ID input
-    document.getElementById('testIdInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') fetchTest();
-    });
+    // Enter key for test ID input (duplicate removed)
 
     // Initialize on page load
     checkLoginState();
