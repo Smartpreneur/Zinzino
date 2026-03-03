@@ -653,6 +653,81 @@
     }
     .opener-icon { font-size: 18px; flex-shrink: 0; line-height: 1.2; }
 
+    /* FAQ */
+    .faq-container { margin-top: 8px; }
+    .faq-search {
+      margin-bottom: 20px;
+    }
+    .faq-search input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .faq-search input:focus { border-color: #4a6cf7; }
+    .faq-category {
+      margin-bottom: 24px;
+    }
+    .faq-category-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .faq-item {
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      color: #333;
+      transition: background 0.15s;
+      gap: 12px;
+    }
+    .faq-question:hover { background: #f8f9ff; }
+    .faq-toggle {
+      flex-shrink: 0;
+      font-size: 18px;
+      color: #888;
+      transition: transform 0.2s;
+    }
+    .faq-item.open .faq-toggle { transform: rotate(180deg); }
+    .faq-answer {
+      display: none;
+      padding: 0 20px 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #555;
+    }
+    .faq-item.open .faq-answer { display: block; }
+    .faq-answer ol, .faq-answer ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    .faq-answer li { margin-bottom: 4px; }
+    .faq-answer strong { color: #333; }
+    .faq-no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+      font-size: 15px;
+    }
+    .faq-highlight { background: #fef08a; border-radius: 2px; }
+
     @media (max-width: 600px) {
       .app-header { align-items: center; }
       .profile-avatar { width: 42px; height: 42px; }
@@ -666,6 +741,8 @@
       .chat-input-row { padding: 12px 16px; }
       .chat-bubble { max-width: 90%; }
       .chat-openers { grid-template-columns: 1fr; padding: 16px; }
+      .faq-question { font-size: 14px; padding: 14px 16px; }
+      .faq-answer { padding: 0 16px 14px; }
     }
     @media (max-width: 400px) {
       .tab-btn { font-size: 12px; padding: 10px 6px; }
@@ -711,6 +788,9 @@
         </button>
         <button class="tab-btn" id="tabKIAgent" onclick="switchTab('kiagent')">
           <span class="tab-icon">&#129302;</span>KI Agent
+        </button>
+        <button class="tab-btn" id="tabFAQ" onclick="switchTab('faq')">
+          <span class="tab-icon">&#10067;</span>FAQ
         </button>
       </div>
     </div>
@@ -826,6 +906,17 @@
             <button id="agentChatSendBtn" onclick="sendChat('agent')">Senden</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pane: FAQ -->
+    <div class="tab-pane" id="paneFAQ">
+      <div class="faq-container">
+        <div class="faq-search">
+          <input type="text" id="faqSearchInput" placeholder="FAQ durchsuchen..." oninput="filterFAQ()" />
+        </div>
+        <div class="faq-no-results" id="faqNoResults" style="display:none">Keine Ergebnisse gefunden.</div>
+        <div id="faqContent"></div>
       </div>
     </div>
   </div>
@@ -1695,8 +1786,10 @@
       activeTab = 'testauswertung';
       document.getElementById('tabTestauswertung').classList.add('active');
       document.getElementById('tabKIAgent').classList.remove('active');
+      document.getElementById('tabFAQ').classList.remove('active');
       document.getElementById('paneTestauswertung').classList.add('active');
       document.getElementById('paneKIAgent').classList.remove('active');
+      document.getElementById('paneFAQ').classList.remove('active');
       checkLoginState();
     }
 
@@ -1706,8 +1799,10 @@
       activeTab = tab;
       document.getElementById('tabTestauswertung').classList.toggle('active', tab === 'testauswertung');
       document.getElementById('tabKIAgent').classList.toggle('active', tab === 'kiagent');
+      document.getElementById('tabFAQ').classList.toggle('active', tab === 'faq');
       document.getElementById('paneTestauswertung').classList.toggle('active', tab === 'testauswertung');
       document.getElementById('paneKIAgent').classList.toggle('active', tab === 'kiagent');
+      document.getElementById('paneFAQ').classList.toggle('active', tab === 'faq');
     }
 
     // ===== CHAT OPENERS =====
@@ -1791,6 +1886,7 @@
       document.getElementById(sendBtnId).disabled = true;
       document.getElementById('tabTestauswertung').disabled = true;
       document.getElementById('tabKIAgent').disabled = true;
+      document.getElementById('tabFAQ').disabled = true;
       let fullText = '';
 
       try {
@@ -1807,6 +1903,7 @@
           document.getElementById(sendBtnId).disabled = false;
           document.getElementById('tabTestauswertung').disabled = false;
           document.getElementById('tabKIAgent').disabled = false;
+          document.getElementById('tabFAQ').disabled = false;
           return;
         }
 
@@ -1851,6 +1948,7 @@
         document.getElementById(sendBtnId).disabled = false;
         document.getElementById('tabTestauswertung').disabled = false;
         document.getElementById('tabKIAgent').disabled = false;
+        document.getElementById('tabFAQ').disabled = false;
         msgArea.scrollTop = msgArea.scrollHeight;
       }
     }
@@ -1865,8 +1963,126 @@
 
     // Enter key for test ID input (duplicate removed)
 
+    // ===== FAQ =====
+    const FAQ_DATA = [
+      {
+        category: 'BalanceTest',
+        items: [
+          { q: 'Wie führe ich den BalanceTest durch?', a: '2 Blutstropfen auf das Spezialpapier geben, trocknen lassen und einsenden. Der Test enthält eine Anleitung. Ergebnisse sind nach 10–20 Tagen auf zinzinotest.com mit dem Test-ID-Code abrufbar.' },
+          { q: 'Sind die Testergebnisse verlässlich?', a: 'Ja. Die Analyse erfolgt anonym durch VITAS (Oslo), ein GMP-zertifiziertes Auftragslabor mit über 25 Jahren Erfahrung in chromatographischen Analysen und führend bei Trockenbluttests. Der Trockenbluttest ist so präzise wie eine venöse Blutabnahme.' },
+          { q: 'Was misst der Test genau?', a: '11 Fettsäuren, die das Ernährungsbild der letzten 120 Tage (Erythrozyten-Lebensdauer) widerspiegeln. Daraus werden 6 Schlüsselmarker berechnet: Omega-6:3-Balance, Schutzwert, Omega-3-Index, Mentale Stärke, Zellmembran-Fluidität und AA-Index.' },
+          { q: 'Wo finde ich meine Testergebnisse?', a: 'Auf zinzinotest.com mit deinem persönlichen Test-ID-Code einloggen.' },
+          { q: 'Ich habe den Code meines BalanceTests verloren.', a: 'Der Test ist anonym. Ein verlorener Code kann nicht wiederhergestellt werden.' },
+          { q: 'Wer wertet den BalanceTest aus?', a: 'VITAS (Norwegen), ein unabhängiges, GMP-zertifiziertes Auftragslabor mit 25 Jahren Erfahrung.' }
+        ]
+      },
+      {
+        category: 'BalanceOil',
+        items: [
+          { q: 'Was ist im BalanceOil drin?', a: 'Wildfisch-Omega-3 (EPA+DHA) kombiniert mit Oliven-Polyphenolen. Die Polyphenole schützen die Omega-3-Fettsäuren vor Oxidation und verbessern die Aufnahme. Verschiedene Varianten: Classic, Premium (R.E.V.O.O.), AquaX (wasserlöslich), Vegan (Algenöl), Tutti Frutti (Kinder).' },
+          { q: 'Wie dosiere ich BalanceOil richtig?', a: '<ul><li>Classic/Premium: <strong>0,15 ml × Körpergewicht in kg</strong></li><li>Vegan/Tutti Frutti: <strong>0,20 ml × Körpergewicht in kg</strong></li><li>Bei Omega-3-Index &lt; 4 %: Doppelte Dosis für 3–4 Wochen</li><li>Mindestens 120 Tage täglich einnehmen</li></ul>' },
+          { q: 'Was, wenn ich nach 120 Tagen noch nicht im Gleichgewicht bin?', a: 'Prüfe zuerst:<ol><li>Tägliche Einnahme erfolgt?</li><li>Korrekte Dosis (0,15 ml × kg)?</li><li>Ernährung angepasst (weniger Omega-6)?</li><li>Genug Blut auf dem Testpapier?</li><li>Medikamente, die den Stoffwechsel beeinflussen?</li><li>Einnahme direkt vor Sport? (ungünstig)</li></ol>Wenn alles passt: <strong>Dosis um 25 % erhöhen</strong> für 2 weitere Monate und erneut testen.' },
+          { q: 'Kann ich BalanceOil bei Fischeiweißallergie nehmen?', a: 'Ja. Die Eiweißmoleküle werden im Herstellungsprozess herausgefiltert.' },
+          { q: 'Kann ich BalanceOil bei Histaminintoleranz nehmen?', a: 'Ja. In verarbeitetem Fischöl ist kein Histamin enthalten; dies wurde mehrfach geprüft.' },
+          { q: 'Mein BalanceOil ist im Kühlschrank trüb/zäh.', a: 'Unter 4 °C kann der Olivenölanteil ausflocken. Das ist normal.<br><strong>Vorgehen:</strong> 2 Stunden bei Zimmertemperatur stehen lassen, kräftig schütteln, Tagesdosis einnehmen, danach wieder kühlen.' },
+          { q: 'Sind die Aromastoffe natürlich?', a: 'Ja. Alle Aromen sind gemäß EU-Verordnung (EG) Nr. 1334/2008 als natürliche Aromen zertifiziert.' },
+          { q: 'Muss ich bei Blutverdünnern aufpassen?', a: 'Ja. Bei Einnahme von <strong>Antikoagulanzien</strong> bitte vorher den Arzt konsultieren (gilt für BalanceOil und Essent+).' }
+        ]
+      },
+      {
+        category: 'Abonnement & Bestellung',
+        items: [
+          { q: 'Wie lange läuft mein Abonnement?', a: '6 monatliche Abozahlungen nach der Startbestellung. Kündigungsfrist 30 Tage. Lieferung alle 2 Monate. Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.' },
+          { q: 'Kann ein Kunde ohne Abo bestellen?', a: 'Ja. Alle Produkte sind auch einmalig bestellbar. Rabattierte Preise gelten nur als Premier-Kunde mit Abonnement.' },
+          { q: 'Wie ändere ich die Geschmacksrichtung?', a: 'Kundenbereich → „Abonnements" → „Geschmack ändern" → neuen Geschmack wählen → bestätigen. In bereits bezahlten Bestellungen nicht änderbar; Änderung gilt für kommende Rechnungen.' },
+          { q: 'Wie upgrade/pausiere/storniere ich mein Abonnement?', a: 'Änderungen über den Kundenservice. Pausieren: 1–2 Rechnungen für max. 90 Tage möglich (ab letzter Zahlung). Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.' },
+          { q: 'Wie sende ich ein Paket zurück?', a: 'Bei stornierten Käufen trägst du die Rücksendekosten; bei beschädigter/fehlerhafter Ware übernimmt Zinzino. Widerruf: Ware muss binnen 30 Tagen nach Erhalt zurück sein. Rücksendeformular beilegen und vorher Kundenservice kontaktieren.' },
+          { q: 'Wo finde ich meine Bestellung/Sendung?', a: 'Anmelden → „Mein Konto" → „Bestellungen" → Sendungsverfolgung aufrufen.' }
+        ]
+      },
+      {
+        category: 'AutoOrder & Z4F',
+        items: [
+          { q: 'Wie hängt die AutoOrder mit der UPK-Rückerstattung zusammen?', a: 'Für die volle UPK-Rückerstattung (100 €) muss die AutoOrder 12 Monate nach Einstieg durchgängig aktiv sein.' },
+          { q: 'Wie bekomme ich meine AutoOrder kostenlos (Z4F)?', a: 'Voraussetzungen: Mind. 4 persönliche Kundenpunkte (1. Generation) UND insgesamt ≥ 40 Credits im Monat (in den ersten 120 Tagen genügen 20). Qualifikationszeitraum: 1. bis letzter Kalendertag; Rabatt gilt im Folgemonat. Max. 1 Kit mit Z4F-Rabatt pro Monat.' },
+          { q: 'Wo sehe ich, ob meine AutoOrder kostenlos ist?', a: 'Backoffice → „Berichterstattung" → „Z4F". Standardansicht zeigt den aktuellen Monat.' }
+        ]
+      },
+      {
+        category: 'Support & Service',
+        items: [
+          { q: 'Wie erreiche ich den Support?', a: 'Über die Zinzino-Kundenservice-Seite: zinzino.com → Über uns → Kundenservice' },
+          { q: 'Wie lasse ich mir Geld auszahlen?', a: 'Webkonto freischalten lassen (länderspezifisch: Deutschland, Österreich, Schweiz haben separate Anleitungen im Forum).' }
+        ]
+      },
+      {
+        category: 'Allgemein',
+        items: [
+          { q: 'Was sind zRewards?', a: 'Bonus-Punkte im Kundenprogramm für Partner ab X-Team. Einlösbar für Bestellungen von Einzelprodukten. Bestellungen mit zRewards generieren keine PCP/PCV.' },
+          { q: 'Literaturtipp', a: '<strong>Dr. Michael Nehls – „Das erschöpfte Gehirn"</strong> – Zusammenhang zwischen Fettsäuren, Lebensstil und mentaler Gesundheit.' }
+        ]
+      }
+    ];
+
+    function renderFAQ(searchTerm) {
+      const container = document.getElementById('faqContent');
+      const noResults = document.getElementById('faqNoResults');
+      const term = (searchTerm || '').toLowerCase().trim();
+      let html = '';
+      let totalMatches = 0;
+
+      for (const cat of FAQ_DATA) {
+        let catHtml = '';
+        let catMatches = 0;
+
+        for (let i = 0; i < cat.items.length; i++) {
+          const item = cat.items[i];
+          const qText = item.q;
+          const aText = item.a.replace(/<[^>]*>/g, ''); // strip HTML for search
+
+          if (term && !qText.toLowerCase().includes(term) && !aText.toLowerCase().includes(term)) continue;
+
+          catMatches++;
+          const isOpen = term ? ' open' : '';
+          let displayQ = escapeHtml(qText);
+          if (term) displayQ = highlightTerm(displayQ, term);
+
+          let displayA = item.a;
+          if (term) displayA = highlightTerm(displayA, term);
+
+          catHtml += `<div class="faq-item${isOpen}" onclick="this.classList.toggle('open')">
+            <div class="faq-question"><span>${displayQ}</span><span class="faq-toggle">&#9660;</span></div>
+            <div class="faq-answer">${displayA}</div>
+          </div>`;
+        }
+
+        if (catMatches > 0) {
+          html += `<div class="faq-category"><div class="faq-category-title">${escapeHtml(cat.category)}</div>${catHtml}</div>`;
+          totalMatches += catMatches;
+        }
+      }
+
+      container.innerHTML = html;
+      noResults.style.display = totalMatches === 0 ? 'block' : 'none';
+    }
+
+    function highlightTerm(text, term) {
+      // Don't highlight inside HTML tags
+      const regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.replace(/(<[^>]*>)|([^<]*)/g, function(match, tag, content) {
+        if (tag) return tag;
+        return content ? content.replace(regex, '<span class="faq-highlight">$1</span>') : '';
+      });
+    }
+
+    function filterFAQ() {
+      const term = document.getElementById('faqSearchInput').value;
+      renderFAQ(term);
+    }
+
     // Initialize on page load
     checkLoginState();
+    renderFAQ();
   </script>
 </body>
 </html>
