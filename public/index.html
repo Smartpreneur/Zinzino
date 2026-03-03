@@ -189,6 +189,25 @@
       background: #f0f4ff; border-left: 4px solid #4a6cf7;
       padding: 16px; border-radius: 0 8px 8px 0; line-height: 1.6;
     }
+    .analysis-overview {
+      display: flex; align-items: center; gap: 24px; margin-bottom: 20px;
+    }
+    .analysis-legend {
+      display: flex; gap: 16px; margin-top: 8px; font-size: 13px;
+    }
+    .analysis-markers-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin-bottom: 16px;
+    }
+    .analysis-marker-item {
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      .analysis-overview { flex-direction: column; text-align: center; gap: 12px; }
+      .analysis-legend { justify-content: center; flex-wrap: wrap; gap: 10px; }
+      .analysis-markers-grid { grid-template-columns: 1fr; gap: 8px; }
+      .analysis-marker-item { font-size: 13px; }
+      .analysis-text { padding: 12px; font-size: 14px; }
+    }
 
     /* ===== DETAIL MARKER BARS ===== */
     .detail-markers { margin-bottom: 24px; }
@@ -315,6 +334,10 @@
 
     @media (max-width: 600px) {
       .detail-body { grid-template-columns: 1fr; }
+      h1 { font-size: 22px; }
+      .subtitle { font-size: 14px; }
+      .search-box { flex-direction: column; }
+      .search-box button { width: 100%; }
     }
 
     /* ===== FATTY ACIDS TABLE ===== */
@@ -324,10 +347,20 @@
     }
     .fatty-acids-card h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a2e; }
 
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
     th { font-size: 12px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; font-weight: 600; }
     td { font-size: 14px; }
+    .col-chem { }
+
+    @media (max-width: 600px) {
+      .fatty-acids-card { padding: 16px; }
+      .col-chem { display: none; }
+      table { min-width: 0; }
+      th, td { padding: 8px 6px; font-size: 13px; }
+      td:first-child { white-space: normal; }
+    }
     .deviation-pos { color: #ef4444; font-weight: 600; }
     .deviation-neg { color: #3b82f6; font-weight: 600; }
     .deviation-ok { color: #22c55e; font-weight: 600; }
@@ -338,10 +371,13 @@
       padding: 10px 12px;
       border-bottom: 2px solid #e5e7eb;
     }
+    @media (max-width: 600px) {
+      .fa-cat-row td { font-size: 14px; padding: 8px 6px; }
+    }
 
     /* Fat Categories */
     .fat-categories {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 12px; margin-bottom: 24px;
     }
     .fat-cat-card {
@@ -360,6 +396,19 @@
       .hero-card { grid-column: 1; }
       .protection-card { grid-column: 1; }
       .summary-row { grid-column: 1; grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 20px 12px; }
+      .person-info { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; }
+      .analysis-card { padding: 16px; }
+      .detail-card { padding: 16px; }
+      .fa-info .fa-tooltip { width: 220px; left: auto; right: -10px; transform: none; }
+      .fa-info .fa-tooltip::after { left: auto; right: 14px; transform: none; }
+    }
+    @media (max-width: 400px) {
+      .summary-row { grid-template-columns: 1fr; }
+      .hero-card .hero-value { font-size: 24px; }
+      .hero-card { padding: 20px 16px; }
+      .mini-card .mini-title { font-size: 12px; }
+      .person-info { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -396,18 +445,20 @@
 
       <div class="fatty-acids-card">
         <h2>Fettsäure-Profil (Detail)</h2>
-        <table id="fattyAcidsTable">
-          <thead>
-            <tr>
-              <th>Fettsäure</th>
-              <th>Chem. Name</th>
-              <th>Ist-Wert</th>
-              <th>Zielwert</th>
-              <th>Abweichung</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="fattyAcidsTable">
+            <thead>
+              <tr>
+                <th>Fettsäure</th>
+                <th class="col-chem">Chem. Name</th>
+                <th>Ist-Wert</th>
+                <th>Zielwert</th>
+                <th>Abw.</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <section>
@@ -816,23 +867,23 @@
         </svg>`;
 
       // Score overview with donut
-      html += `<div style="display:flex;align-items:center;gap:24px;margin-bottom:20px">`;
+      html += `<div class="analysis-overview">`;
       html += donutSvg;
       html += `<div>`;
       html += `<div style="font-size:20px;font-weight:700;color:${overallColor}">${overallLabel}</div>`;
       html += `<div style="font-size:14px;color:#666;margin-top:4px">${reds} kritische, ${yellows} auffällige, ${greens} gute Werte von ${total}</div>`;
-      html += `<div style="display:flex;gap:16px;margin-top:8px;font-size:13px">`;
+      html += `<div class="analysis-legend">`;
       html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ef4444;margin-right:4px;vertical-align:middle"></span>${reds} Kritisch</span>`;
       html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f59e0b;margin-right:4px;vertical-align:middle"></span>${yellows} Auffällig</span>`;
       html += `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22c55e;margin-right:4px;vertical-align:middle"></span>${greens} Gut</span>`;
       html += `</div></div></div>`;
 
       // Per-marker overview list
-      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px">`;
+      html += `<div class="analysis-markers-grid">`;
       for (const m of allMarkers) {
         if (!m.color) continue;
         const statusMap = { red: 'Kritisch', yellow: 'Auffällig', green: 'Gut' };
-        html += `<div style="font-size:14px">${colorDot(m.color)}<strong>${m.name}</strong> ${m.val} — <span style="color:${m.color === 'red' ? '#ef4444' : m.color === 'yellow' ? '#f59e0b' : '#22c55e'}">${statusMap[m.color]}</span></div>`;
+        html += `<div class="analysis-marker-item">${colorDot(m.color)}<strong>${m.name}</strong> ${m.val} — <span style="color:${m.color === 'red' ? '#ef4444' : m.color === 'yellow' ? '#f59e0b' : '#22c55e'}">${statusMap[m.color]}</span></div>`;
       }
       html += `</div>`;
 
@@ -1030,7 +1081,7 @@
 
       for (const cat of FA_CATEGORIES) {
         // Category header row
-        html += `<tr class="fa-cat-row"><td colspan="5"><strong>${cat.label}</strong></td></tr>`;
+        html += `<tr class="fa-cat-row"><td colspan="5" class="fa-cat-cell"><strong>${cat.label}</strong></td></tr>`;
 
         for (const acidKey of cat.acids) {
           const fa = fattyAcids.find(f => f.Fieldname === acidKey);
@@ -1047,7 +1098,7 @@
           html += `
             <tr>
               <td style="padding-left:20px">${deName} ${tooltip}</td>
-              <td>${fa['Chemical name']}</td>
+              <td class="col-chem">${fa['Chemical name']}</td>
               <td>${fa.Value}%</td>
               <td>${fa.Target}%</td>
               <td class="${devClass}">${dev > 0 ? '+' : ''}${fa.Deviation}</td>
