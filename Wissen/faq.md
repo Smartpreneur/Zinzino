@@ -2,117 +2,171 @@
 
 ---
 
-## BalanceTest
+## Balance Test & Testergebnisse
 
-### Wie führe ich den BalanceTest durch?
-2 Blutstropfen auf das Spezialpapier geben, trocknen lassen und einsenden. Der Test enthält eine Anleitung. Ergebnisse sind nach 10–20 Tagen auf zinzinotest.com mit dem Test-ID-Code abrufbar.
+### Wie führe ich den Test/BalanceTest durch?
+Im Test selbst findest Du eine Anleitung, schau Dir gerne zusätzlich hierzu folgendes Schulungsvideo an.
 
-### Sind die Testergebnisse verlässlich?
-Ja. Die Analyse erfolgt anonym durch VITAS (Oslo), ein GMP-zertifiziertes Auftragslabor mit über 25 Jahren Erfahrung in chromatographischen Analysen und führend bei Trockenbluttests. Der Trockenbluttest ist so präzise wie eine venöse Blutabnahme.
+### Wo kann ich meine Testergebnisse finden?
+Gehen Sie auf die Seite zinzinotest.com und geben Sie Ihren Test-ID-Code ein, um Zugang zu Ihren Testergebnissen zu erhalten.
 
-### Was misst der Test genau?
-11 Fettsäuren, die das Ernährungsbild der letzten 120 Tage (Erythrozyten-Lebensdauer) widerspiegeln. Daraus werden 6 Schlüsselmarker berechnet: Omega-6:3-Balance, Schutzwert, Omega-3-Index, Mentale Stärke, Zellmembran-Fluidität und AA-Index.
+### Sind die Zinzino Testergebnisse verlässlich und seriös?
+Alle Blutproben werden von Vitas, einem GMP-zertifizierten Vertragslabor für chemische Analysen mit Sitz in Oslo, Norwegen, verwaltet und anonym analysiert. Vitas verfügt über 25 Jahre Erfahrung und hat bereits mit der Weltgesundheitsorganisation zusammengearbeitet.
 
-### Wo finde ich meine Testergebnisse?
-Auf zinzinotest.com mit deinem persönlichen Test-ID-Code einloggen.
+### Wie wird der BalanceTest ausgewertet/analysiert?
+Der Test wird von Vitas, einem unabhängigen Labor in Norwegen, analysiert. Vitas ist ein GMP-zertifiziertes Auftragslabor für chemische Analysen mit 25 Jahren Erfahrung.
 
-### Ich habe den Code meines BalanceTests verloren.
-Der Test ist anonym. Ein verlorener Code kann nicht wiederhergestellt werden.
+### Was tue ich, wenn nach 120 Tagen noch nicht das Gleichgewicht erreicht wurde?
+Prüfen Sie als erstes, ob Sie Ihr Balance-Produkt wirklich täglich in der richtigen Menge eingenommen haben (0,15 ml x Kilo Körpergewicht). Wenn Sie 120 Tage lang die richtige Tagesdosis eingenommen haben, aber immer noch nicht im Gleichgewicht sind, dann erhöhen Sie Ihre Balance Oil-Zufuhr in den nächsten 2 Monaten um 25% und machen Sie einen neuen Test.
 
-### Wer wertet den BalanceTest aus?
-VITAS (Norwegen), ein unabhängiges, GMP-zertifiziertes Auftragslabor mit 25 Jahren Erfahrung.
-
----
-
-## BalanceOil
-
-### Was ist im BalanceOil drin?
-Wildfisch-Omega-3 (EPA+DHA) kombiniert mit Oliven-Polyphenolen. Die Polyphenole schützen die Omega-3-Fettsäuren vor Oxidation und verbessern die Aufnahme. Verschiedene Varianten: Classic, Premium (R.E.V.O.O.), AquaX (wasserlöslich), Vegan (Algenöl), Tutti Frutti (Kinder).
-
-### Wie dosiere ich BalanceOil richtig?
-- Classic/Premium: **0,15 ml × Körpergewicht in kg**
-- Vegan/Tutti Frutti: **0,20 ml × Körpergewicht in kg**
-- Bei Omega-3-Index < 4 %: Doppelte Dosis für 3–4 Wochen
-- Mindestens 120 Tage täglich einnehmen
-
-### Was, wenn ich nach 120 Tagen noch nicht im Gleichgewicht bin?
-Prüfe zuerst:
-1. Tägliche Einnahme erfolgt?
-2. Korrekte Dosis (0,15 ml × kg)?
-3. Ernährung angepasst (weniger Omega-6)?
-4. Genug Blut auf dem Testpapier?
-5. Medikamente, die den Stoffwechsel beeinflussen?
-6. Einnahme direkt vor Sport? (ungünstig)
-
-Wenn alles passt: **Dosis um 25 % erhöhen** für 2 weitere Monate und erneut testen.
-
-### Kann ich BalanceOil bei Fischeiweißallergie nehmen?
-Ja. Die Eiweißmoleküle werden im Herstellungsprozess herausgefiltert.
-
-### Kann ich BalanceOil bei Histaminintoleranz nehmen?
-Ja. In verarbeitetem Fischöl ist kein Histamin enthalten; dies wurde mehrfach geprüft.
-
-### Mein BalanceOil ist im Kühlschrank trüb/zäh.
-Unter 4 °C kann der Olivenölanteil ausflocken. Das ist normal.
-**Vorgehen:** 2 Stunden bei Zimmertemperatur stehen lassen, kräftig schütteln, Tagesdosis einnehmen, danach wieder kühlen.
-
-### Sind die Aromastoffe natürlich?
-Ja. Alle Aromen sind gemäß EU-Verordnung (EG) Nr. 1334/2008 als natürliche Aromen zertifiziert.
-
-### Muss ich bei Blutverdünnern aufpassen?
-Ja. Bei Einnahme von **Antikoagulanzien** bitte vorher den Arzt konsultieren (gilt für BalanceOil und Essent+).
+### Ich habe den Code meines BalanceTests verloren, was kann ich tun?
+Der BalanceTest ist ein anonymer Test, daher kann sein Code nicht gefunden oder erneut versendet werden.
 
 ---
 
-## Abonnement & Bestellung
+## Produkte & Gesundheit
 
-### Wie lange läuft mein Abonnement?
-6 monatliche Abozahlungen nach der Startbestellung. Kündigungsfrist 30 Tage. Lieferung alle 2 Monate. Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.
+### Was ist nochmal genau im BalanceOil drin?
+Schau Dir gerne dieses Produktdatenblatt mit allen wichtigen Infos an.
 
-### Kann ein Kunde ohne Abo bestellen?
-Ja. Alle Produkte sind auch einmalig bestellbar. Rabattierte Preise gelten nur als Premier-Kunde mit Abonnement.
+### Ich brauche mehr Infos, wie das Gesundheitsprotokoll im Körper wirkt?
+Schau Dir hierzu dieses Video an, hier erfährst Du in einfachen Worten, wie die einzelnen Komponenten des Gesundheitshauses zusammen wirken.
 
-### Wie ändere ich die Geschmacksrichtung?
-Kundenbereich → „Abonnements" → „Geschmack ändern" → neuen Geschmack wählen → bestätigen. In bereits bezahlten Bestellungen nicht änderbar; Änderung gilt für kommende Rechnungen.
+### Wie bekomme ich einen Überblick über die wichtigsten Produkte?
+Schau Dir gerne diese kurzen und knackigen Beschreibungen der Hauptprodukte an.
 
-### Wie upgrade/pausiere/storniere ich mein Abonnement?
-Änderungen über den Kundenservice. Pausieren: 1–2 Rechnungen für max. 90 Tage möglich (ab letzter Zahlung). Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.
+### Kann ich das Fischöl auch bei einer Fischeiweißallergie nehmen?
+Ja, denn die eigentlichen Eiweißmoleküle wurden herausgefiltert.
 
-### Wie sende ich ein Paket zurück?
-Bei stornierten Käufen trägst du die Rücksendekosten; bei beschädigter/fehlerhafter Ware übernimmt Zinzino. Widerruf: Ware muss binnen 30 Tagen nach Erhalt zurück sein. Rücksendeformular beilegen und vorher Kundenservice kontaktieren.
+### Sind die Aromastoffe im BalanceOil+ natürlich oder künstlich?
+Alle Aromen sind als natürliche Aromen gemäß der Verordnung (EG) Nr. 1334/2008 zertifiziert.
 
-### Wo finde ich meine Bestellung/Sendung?
-Anmelden → „Mein Konto" → „Bestellungen" → Sendungsverfolgung aufrufen.
-
----
-
-## AutoOrder & Z4F
-
-### Wie hängt die AutoOrder mit der UPK-Rückerstattung zusammen?
-Für die volle UPK-Rückerstattung (100 €) muss die AutoOrder 12 Monate nach Einstieg durchgängig aktiv sein.
-
-### Wie bekomme ich meine AutoOrder kostenlos (Z4F)?
-Voraussetzungen: Mind. 4 persönliche Kundenpunkte (1. Generation) UND insgesamt ≥ 40 Credits im Monat (in den ersten 120 Tagen genügen 20). Qualifikationszeitraum: 1. bis letzter Kalendertag; Rabatt gilt im Folgemonat. Max. 1 Kit mit Z4F-Rabatt pro Monat.
-
-### Wo sehe ich, ob meine AutoOrder kostenlos ist?
-Backoffice → „Berichterstattung" → „Z4F". Standardansicht zeigt den aktuellen Monat.
+### Histaminintoleranz – Kann ich Balance Oil verwenden?
+Ja, Sie können Balance Oil verwenden. Histaminintoleranz ist ein relevantes Thema, aber nicht für verarbeitetes Fischöl. Dank der Verarbeitung von Fischöl ist kein Histamin in Fischöl enthalten.
 
 ---
 
-## Support & Service
+## Produktverwendung & Hinweise
 
-### Wie erreiche ich den Support?
-Über die Zinzino-Kundenservice-Seite: zinzino.com → Über uns → Kundenservice
+### Wie dosiere ich das Öl?
+0,15 ml / kg Körpergewicht, bei Bedarf auch höher.
 
-### Wie lasse ich mir Geld auszahlen?
-Webkonto freischalten lassen (länderspezifisch: Deutschland, Österreich, Schweiz haben separate Anleitungen im Forum).
+### Wie schmuggel ich es unter?
+(Frucht-)Buttermilch, Saft.
+
+### Aufbewahrung Öl
+Nicht auf Fußbodenheizung, nicht in der Sonne, kühl und schattig, angebrochen im Kühlschrank.
+
+### Balance Oil ist im Kühlschrank zähflüssig / kristallartig / trübe geworden, was tun?
+Das Öl kann bei Temperaturen unter 4 °C (39 °F) aufgrund der Verfestigung des Olivenöls trübe werden. Bei Zimmertemperatur wird das Öl wieder klar. Lassen Sie das Öl etwa 2 Stunden lang bei Raumtemperatur auf dem Tisch stehen, schütteln Sie die Flasche, damit sich der Inhalt gut vermischt, und nehmen Sie dann Ihre tägliche Dosis Öl ein.
+
+### Wie ändere ich die Geschmacksrichtung beim BalanceOil?
+1. Melden Sie sich auf Ihrer Kundenseite an.
+2. Wählen Sie im Menü links den Punkt Abonnements und klicken auf "Geschmack ändern".
+3. Wählen Sie Ihren Geschmack aus und klicken Sie dann auf "Weiter".
+4. Klicken Sie auf "Artikel anzeigen, die im Kit enthalten sind". Ihr neuer Geschmack wird bei Ihrer nächsten Bestellung verschickt!
+
+### Kontraindikationen
+Zusammenstellung Shenja (PDF)
+
+### Wo Test registrieren?
+www.zinzinotest.com
+
+### Wird über Testergebnis benachrichtigt?
+Je nach hinterlegter Mail / Handynummer.
 
 ---
 
-## Allgemein
+## Bestellungen & Abonnements
 
-### Was sind zRewards?
-Bonus-Punkte im Kundenprogramm für Partner ab X-Team. Einlösbar für Bestellungen von Einzelprodukten. Bestellungen mit zRewards generieren keine PCP/PCV.
+### Wie erstelle ich meine Autoorder?
+1. Einloggen ins Backoffice
+2. Menü „Abonnements / AutoOrder" öffnen
+3. Gewünschtes Kit/Produkt wählen → „Abonnieren" + „Später bezahlen" anklicken
+4. Speichern und die Bestätigung prüfen
 
-### Literaturtipp
-**Dr. Michael Nehls – „Das erschöpfte Gehirn"** – Zusammenhang zwischen Fettsäuren, Lebensstil und mentaler Gesundheit.
+### Wie bekomme ich meine Autoorder kostenlos?
+Wenn ein Partner mindestens 4 Kundenpunkte und 40 Credits von seinen Kunden der ersten Generation hat, ist er qualifiziert. In den ersten 120 Tagen erhält der Partner einen Rabatt von 50% auf die benötigten Credits.
+
+### Wie kann ich sehen, ob die Autoorder kostenlos ist?
+Gehen Sie im Backoffice auf Berichterstattung ⇒ Z4F. Sie gelangen automatisch zur aktuellen Monatssituation – hier können Sie sehen, wie viele Credits und Kundenpunkte Sie gesammelt haben.
+
+### Wie kann ich mein Abonnement upgraden/aufschieben/stornieren?
+Bitte wenden Sie sich an den Kundenservice, um Änderungen an Ihrem Abonnement vorzunehmen. Sie können Ihr Abonnement für maximal 90 Tage unterbrechen. Bei der Stornierung des Abonnements innerhalb der ersten sechs Monate fällt eine Gebühr an.
+
+### Wie lange beträgt die Laufzeit meines Abonnements?
+Die Laufzeit umfasst 6 monatliche Abonnementzahlungen, nachdem Sie Ihre Startbestellung bezahlt haben. Sie haben eine Kündigungsfrist von 30 Tagen. Sie zahlen eine monatliche Abonnementsgebühr und werden alle zwei Monate beliefert.
+
+### Kann ein Kunde bestellen, ohne ein Abo abzuschließen?
+Ja, wir bieten all unsere Produkte zum einmaligen Kauf an. Beachten Sie jedoch, dass die ermäßigten Preise nur gelten, wenn Sie ein Abonnement als Premier-Kunde abschließen.
+
+### Wo finde ich meine Bestellung?
+Sie können Ihre Lieferung verfolgen, indem Sie sich über Ihr Konto anmelden. Anmelden → Mein Konto → Bestellungen.
+
+### Wie kann ich mein Paket zurücksenden?
+Bei stornierten Käufen erfolgt die Rücksendung auf eigene Kosten. Wenn die Waren beschädigt sind, ist Zinzino verpflichtet, die Rücksendekosten zu übernehmen. Auf Anfrage sendet Zinzino ein Rücksendeetikett zu.
+
+---
+
+## Onboarding & erste Schritte
+
+### Ich weiß nicht, ob ich Leute finde, die ich ansprechen kann?
+Ich verstehe gut, dass es dir jetzt gerade so vorkommt, als würdest du niemanden kennen, der sich dafür interessiert. Schau dir gerne den Memory Jogger auf der zweiten Seite unserer Namensliste an und überleg gemeinsam mit uns:
+- mit wem möchte ich mehr Zeit verbringen?
+- wer ist auf der Suche nach einer beruflichen Veränderung?
+- wer ist total unglücklich in seinem Job?
+- wer möchte etwas mehr vom Leben?
+- bei wem sehe ich besonders großes Potenzial?
+- Bei wem ist es mir wichtig, dass es ihm gesundheitlich gut geht?
+
+### Wie war das jetzt nochmal mit der AutoOrder und der UPK-Rückerstattung?
+Um die volle Rückerstattung des UPK zu erhalten, ist eine der Voraussetzungen, dass deine Auto Order über den Zeitraum von zwölf Monaten nach deinem Einstieg durchgängig aktiv war. Du kannst dir diese Auto Order kostenfrei verdienen, in dem du eigene Kunden und somit Punkte und Credits generierst. In den ersten vier Monaten genügen vier Kunden Punkte und 20 Credits. Ab dem fünften Monat bedarf es vier Kunden Punkte und 40 Credits.
+
+### Kann ich die Produkte nicht erst mal für mich testen?
+Es ist eine super Idee, die Produkte für dich selbst zu testen, um aus eigener Erfahrung sprechen zu können! Unsere Empfehlung ist jedoch, schon während du selbst deine Erfahrungen machst, Interessenten auf die Produkte anzusprechen. Keep it simple ist hier das Zauberwort.
+
+### Wie gehe ich da jetzt vor beim Einladen in einen 2:1 Call?
+Ein kurzer Call ist mit Abstand die beste und zeiteffizienteste Möglichkeit. Die Vorteile sind: ein Experte nimmt sich Zeit für dich, du bekommst alle Infos in kurzer Zeit, du musst dich nicht selbst einlesen, wir können direkt auf Rückfragen eingehen. Übung macht den Meister – übe gerne gemeinsam mit deiner Ansprechperson ein paar dieser Einladungen ein.
+
+### Wann kommt die nächste Version vom Agenten?
+Oktober
+
+---
+
+## Gesprächsführung & Ansprache
+
+### Wie kann ich meine Schwester/Bruder/Freundin etc. einladen?
+Nutze unseren bewährten 3-Schritte-Ansatz. Beispiel für Gesundheitskonzept: "Hey Peter, ich hoffe es geht Dir gut? Du bist ja jemand, der schon immer sehr auf seine Gesundheit geachtet hat. Ich habe ein testbasiertes Gesundheitskonzept aus Skandinavien kennengelernt. Das Ganze basiert auf einem Test mit dem man herausfinden kann, wie viel von den Nährstoffen, die man seinem Körper gibt, überhaupt in den Zellen ankommen. Und was ich dabei gelernt habe, dass bei ganzen 97% der Menschen weltweit garnicht alle Nährstoffe ankommen, die man seinem Körper jeden Tag gibt."
+
+### Beispiel für Business-Konzept
+"Hallo Mareike, ich wollte mich mal kurz melden, weil ich vor kurzem an dich denken musste. Du hast ja schon öfter erzählt, dass du mit deinem aktuellen Job unzufrieden bist. Ich habe eine Möglichkeit kennengelernt, wie man sich nebenbei von zu Hause aus etwas aufbauen kann im Gesundheitsbereich mit einem System, das ganz vielen Menschen gesundheitlich hilft."
+
+---
+
+## Business & Verdienst
+
+### Wie kann ich mir Geld auszahlen lassen bei Zinzino?
+Hierzu musst Du Dir Dein Webkonto freischalten lassen.
+
+### Welches Buch kann ich für die Weiterbildung im NWM lesen?
+"Go Pro – 7 Schritte zum Network Marketing Profi" – vermittelt auf 160 leicht zu lesenden Seiten das nötige Mindset und die zentralen Fähigkeiten.
+
+### Wie bekomme ich einen Überblick über das Backoffice?
+Schau Dir gerne unser Video hierzu an, hier bekommst Du einen guten Überblick.
+
+### Es finden so viele Vorträge und Calls statt. Welche sind für mich relevant?
+- **Montags um 19:00 Uhr:** Fireadler Teamcall (wöchentlich)
+- **Mittwochs um 20:30:** EMPOWER-Teamcall (wöchentlich)
+
+Diese beiden Calls sind die wichtigsten der Woche.
+Hier der Link zum Kalender: Zinzino TEAM EMPOWER
+
+---
+
+## Technische Fragen & Support
+
+### Wie kann ich den Support erreichen?
+Auf dieser Seite findest Du alle Kontaktmöglichkeiten des Zinzino-Kundenservice.
+
+### Wo finde ich den Compensation Plan?
+Logge dich bitte in Dein Backoffice ein, dann findest Du den Compensation Plan unter Datei-Bibliothek ⇒ Partnermaterialien ⇒ Compensation Plan.

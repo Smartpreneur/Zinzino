@@ -655,6 +655,38 @@
 
     /* FAQ */
     .faq-container { margin-top: 8px; }
+    .faq-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .faq-nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .faq-nav-pill:hover {
+      border-color: #4a6cf7;
+      color: #4a6cf7;
+      background: #f0f4ff;
+    }
+    .faq-nav-pill.active {
+      border-color: #4a6cf7;
+      background: #4a6cf7;
+      color: white;
+    }
+    .faq-nav-pill .pill-icon { font-size: 15px; }
     .faq-search {
       margin-bottom: 20px;
     }
@@ -912,6 +944,7 @@
     <!-- Pane: FAQ -->
     <div class="tab-pane" id="paneFAQ">
       <div class="faq-container">
+        <div class="faq-nav" id="faqNav"></div>
         <div class="faq-search">
           <input type="text" id="faqSearchInput" placeholder="FAQ durchsuchen..." oninput="filterFAQ()" />
         </div>
@@ -1966,72 +1999,138 @@
     // ===== FAQ =====
     const FAQ_DATA = [
       {
-        category: 'BalanceTest',
+        category: 'Balance Test & Testergebnisse',
+        icon: '🎯',
         items: [
-          { q: 'Wie führe ich den BalanceTest durch?', a: '2 Blutstropfen auf das Spezialpapier geben, trocknen lassen und einsenden. Der Test enthält eine Anleitung. Ergebnisse sind nach 10–20 Tagen auf zinzinotest.com mit dem Test-ID-Code abrufbar.' },
-          { q: 'Sind die Testergebnisse verlässlich?', a: 'Ja. Die Analyse erfolgt anonym durch VITAS (Oslo), ein GMP-zertifiziertes Auftragslabor mit über 25 Jahren Erfahrung in chromatographischen Analysen und führend bei Trockenbluttests. Der Trockenbluttest ist so präzise wie eine venöse Blutabnahme.' },
-          { q: 'Was misst der Test genau?', a: '11 Fettsäuren, die das Ernährungsbild der letzten 120 Tage (Erythrozyten-Lebensdauer) widerspiegeln. Daraus werden 6 Schlüsselmarker berechnet: Omega-6:3-Balance, Schutzwert, Omega-3-Index, Mentale Stärke, Zellmembran-Fluidität und AA-Index.' },
-          { q: 'Wo finde ich meine Testergebnisse?', a: 'Auf zinzinotest.com mit deinem persönlichen Test-ID-Code einloggen.' },
-          { q: 'Ich habe den Code meines BalanceTests verloren.', a: 'Der Test ist anonym. Ein verlorener Code kann nicht wiederhergestellt werden.' },
-          { q: 'Wer wertet den BalanceTest aus?', a: 'VITAS (Norwegen), ein unabhängiges, GMP-zertifiziertes Auftragslabor mit 25 Jahren Erfahrung.' }
+          { q: 'Wie führe ich den Test/BalanceTest durch?', a: 'Im Test selbst findest Du eine Anleitung, schau Dir gerne zusätzlich hierzu folgendes Schulungsvideo an.' },
+          { q: 'Wo kann ich meine Testergebnisse finden?', a: 'Gehen Sie auf die Seite zinzinotest.com und geben Sie Ihren Test-ID-Code ein, um Zugang zu Ihren Testergebnissen zu erhalten.' },
+          { q: 'Sind die Zinzino Testergebnisse verlässlich und seriös?', a: 'Alle Blutproben werden von Vitas, einem GMP-zertifizierten Vertragslabor für chemische Analysen mit Sitz in Oslo, Norwegen, verwaltet und anonym analysiert. Vitas verfügt über 25 Jahre Erfahrung und hat bereits mit der Weltgesundheitsorganisation zusammengearbeitet.' },
+          { q: 'Wie wird der BalanceTest ausgewertet/analysiert?', a: 'Der Test wird von Vitas, einem unabhängigen Labor in Norwegen, analysiert. Vitas ist ein GMP-zertifiziertes Auftragslabor für chemische Analysen mit 25 Jahren Erfahrung.' },
+          { q: 'Was tue ich, wenn nach 120 Tagen noch nicht das Gleichgewicht erreicht wurde?', a: 'Prüfen Sie als erstes, ob Sie Ihr Balance-Produkt wirklich täglich in der richtigen Menge eingenommen haben (0,15 ml x Kilo Körpergewicht). Wenn Sie 120 Tage lang die richtige Tagesdosis eingenommen haben, aber immer noch nicht im Gleichgewicht sind, dann erhöhen Sie Ihre Balance Oil-Zufuhr in den nächsten 2 Monaten um 25% und machen Sie einen neuen Test.' },
+          { q: 'Ich habe den Code meines BalanceTests verloren, was kann ich tun?', a: 'Der BalanceTest ist ein anonymer Test, daher kann sein Code nicht gefunden oder erneut versendet werden.' }
         ]
       },
       {
-        category: 'BalanceOil',
+        category: 'Produkte & Gesundheit',
+        icon: '💜',
         items: [
-          { q: 'Was ist im BalanceOil drin?', a: 'Wildfisch-Omega-3 (EPA+DHA) kombiniert mit Oliven-Polyphenolen. Die Polyphenole schützen die Omega-3-Fettsäuren vor Oxidation und verbessern die Aufnahme. Verschiedene Varianten: Classic, Premium (R.E.V.O.O.), AquaX (wasserlöslich), Vegan (Algenöl), Tutti Frutti (Kinder).' },
-          { q: 'Wie dosiere ich BalanceOil richtig?', a: '<ul><li>Classic/Premium: <strong>0,15 ml × Körpergewicht in kg</strong></li><li>Vegan/Tutti Frutti: <strong>0,20 ml × Körpergewicht in kg</strong></li><li>Bei Omega-3-Index &lt; 4 %: Doppelte Dosis für 3–4 Wochen</li><li>Mindestens 120 Tage täglich einnehmen</li></ul>' },
-          { q: 'Was, wenn ich nach 120 Tagen noch nicht im Gleichgewicht bin?', a: 'Prüfe zuerst:<ol><li>Tägliche Einnahme erfolgt?</li><li>Korrekte Dosis (0,15 ml × kg)?</li><li>Ernährung angepasst (weniger Omega-6)?</li><li>Genug Blut auf dem Testpapier?</li><li>Medikamente, die den Stoffwechsel beeinflussen?</li><li>Einnahme direkt vor Sport? (ungünstig)</li></ol>Wenn alles passt: <strong>Dosis um 25 % erhöhen</strong> für 2 weitere Monate und erneut testen.' },
-          { q: 'Kann ich BalanceOil bei Fischeiweißallergie nehmen?', a: 'Ja. Die Eiweißmoleküle werden im Herstellungsprozess herausgefiltert.' },
-          { q: 'Kann ich BalanceOil bei Histaminintoleranz nehmen?', a: 'Ja. In verarbeitetem Fischöl ist kein Histamin enthalten; dies wurde mehrfach geprüft.' },
-          { q: 'Mein BalanceOil ist im Kühlschrank trüb/zäh.', a: 'Unter 4 °C kann der Olivenölanteil ausflocken. Das ist normal.<br><strong>Vorgehen:</strong> 2 Stunden bei Zimmertemperatur stehen lassen, kräftig schütteln, Tagesdosis einnehmen, danach wieder kühlen.' },
-          { q: 'Sind die Aromastoffe natürlich?', a: 'Ja. Alle Aromen sind gemäß EU-Verordnung (EG) Nr. 1334/2008 als natürliche Aromen zertifiziert.' },
-          { q: 'Muss ich bei Blutverdünnern aufpassen?', a: 'Ja. Bei Einnahme von <strong>Antikoagulanzien</strong> bitte vorher den Arzt konsultieren (gilt für BalanceOil und Essent+).' }
+          { q: 'Was ist nochmal genau im BalanceOil drin?', a: 'Schau Dir gerne dieses Produktdatenblatt mit allen wichtigen Infos an.' },
+          { q: 'Ich brauche mehr Infos, wie das Gesundheitsprotokoll im Körper wirkt?', a: 'Schau Dir hierzu dieses Video an, hier erfährst Du in einfachen Worten, wie die einzelnen Komponenten des Gesundheitshauses zusammen wirken.' },
+          { q: 'Wie bekomme ich einen Überblick über die wichtigsten Produkte?', a: 'Schau Dir gerne diese kurzen und knackigen Beschreibungen der Hauptprodukte an.' },
+          { q: 'Kann ich das Fischöl auch bei einer Fischeiweißallergie nehmen?', a: 'Ja, denn die eigentlichen Eiweißmoleküle wurden herausgefiltert.' },
+          { q: 'Sind die Aromastoffe im BalanceOil+ natürlich oder künstlich?', a: 'Alle Aromen sind als natürliche Aromen gemäß der Verordnung (EG) Nr. 1334/2008 zertifiziert.' },
+          { q: 'Histaminintoleranz – Kann ich Balance Oil verwenden?', a: 'Ja, Sie können Balance Oil verwenden. Histaminintoleranz ist ein relevantes Thema, aber nicht für verarbeitetes Fischöl. Dank der Verarbeitung von Fischöl ist kein Histamin in Fischöl enthalten.' }
         ]
       },
       {
-        category: 'Abonnement & Bestellung',
+        category: 'Produktverwendung & Hinweise',
+        icon: '📋',
         items: [
-          { q: 'Wie lange läuft mein Abonnement?', a: '6 monatliche Abozahlungen nach der Startbestellung. Kündigungsfrist 30 Tage. Lieferung alle 2 Monate. Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.' },
-          { q: 'Kann ein Kunde ohne Abo bestellen?', a: 'Ja. Alle Produkte sind auch einmalig bestellbar. Rabattierte Preise gelten nur als Premier-Kunde mit Abonnement.' },
-          { q: 'Wie ändere ich die Geschmacksrichtung?', a: 'Kundenbereich → „Abonnements" → „Geschmack ändern" → neuen Geschmack wählen → bestätigen. In bereits bezahlten Bestellungen nicht änderbar; Änderung gilt für kommende Rechnungen.' },
-          { q: 'Wie upgrade/pausiere/storniere ich mein Abonnement?', a: 'Änderungen über den Kundenservice. Pausieren: 1–2 Rechnungen für max. 90 Tage möglich (ab letzter Zahlung). Stornierung innerhalb der ersten 6 Monate ist gebührenpflichtig.' },
-          { q: 'Wie sende ich ein Paket zurück?', a: 'Bei stornierten Käufen trägst du die Rücksendekosten; bei beschädigter/fehlerhafter Ware übernimmt Zinzino. Widerruf: Ware muss binnen 30 Tagen nach Erhalt zurück sein. Rücksendeformular beilegen und vorher Kundenservice kontaktieren.' },
-          { q: 'Wo finde ich meine Bestellung/Sendung?', a: 'Anmelden → „Mein Konto" → „Bestellungen" → Sendungsverfolgung aufrufen.' }
+          { q: 'Wie dosiere ich das Öl?', a: '0,15 ml / kg Körpergewicht, bei Bedarf auch höher.' },
+          { q: 'Wie schmuggel ich es unter?', a: '(Frucht-)Buttermilch, Saft.' },
+          { q: 'Aufbewahrung Öl', a: 'Nicht auf Fußbodenheizung, nicht in der Sonne, kühl und schattig, angebrochen im Kühlschrank.' },
+          { q: 'Balance Oil ist im Kühlschrank zähflüssig / kristallartig / trübe geworden, was tun?', a: 'Das Öl kann bei Temperaturen unter 4 °C (39 °F) aufgrund der Verfestigung des Olivenöls trübe werden. Bei Zimmertemperatur wird das Öl wieder klar. Lassen Sie das Öl etwa 2 Stunden lang bei Raumtemperatur auf dem Tisch stehen, schütteln Sie die Flasche, damit sich der Inhalt gut vermischt, und nehmen Sie dann Ihre tägliche Dosis Öl ein.' },
+          { q: 'Wie ändere ich die Geschmacksrichtung beim BalanceOil?', a: '<ol><li>Melden Sie sich auf Ihrer Kundenseite an.</li><li>Wählen Sie im Menü links den Punkt Abonnements und klicken auf "Geschmack ändern".</li><li>Wählen Sie Ihren Geschmack aus und klicken Sie dann auf "Weiter".</li><li>Klicken Sie auf "Artikel anzeigen, die im Kit enthalten sind". Ihr neuer Geschmack wird bei Ihrer nächsten Bestellung verschickt!</li></ol>' },
+          { q: 'Kontraindikationen', a: 'Zusammenstellung Shenja (PDF)' },
+          { q: 'Wo Test registrieren?', a: 'www.zinzinotest.com' },
+          { q: 'Wird über Testergebnis benachrichtigt?', a: 'Je nach hinterlegter Mail / Handynummer.' }
         ]
       },
       {
-        category: 'AutoOrder & Z4F',
+        category: 'Bestellungen & Abonnements',
+        icon: '📦',
         items: [
-          { q: 'Wie hängt die AutoOrder mit der UPK-Rückerstattung zusammen?', a: 'Für die volle UPK-Rückerstattung (100 €) muss die AutoOrder 12 Monate nach Einstieg durchgängig aktiv sein.' },
-          { q: 'Wie bekomme ich meine AutoOrder kostenlos (Z4F)?', a: 'Voraussetzungen: Mind. 4 persönliche Kundenpunkte (1. Generation) UND insgesamt ≥ 40 Credits im Monat (in den ersten 120 Tagen genügen 20). Qualifikationszeitraum: 1. bis letzter Kalendertag; Rabatt gilt im Folgemonat. Max. 1 Kit mit Z4F-Rabatt pro Monat.' },
-          { q: 'Wo sehe ich, ob meine AutoOrder kostenlos ist?', a: 'Backoffice → „Berichterstattung" → „Z4F". Standardansicht zeigt den aktuellen Monat.' }
+          { q: 'Wie erstelle ich meine Autoorder?', a: '<ol><li>Einloggen ins Backoffice</li><li>Menü „Abonnements / AutoOrder" öffnen</li><li>Gewünschtes Kit/Produkt wählen → „Abonnieren" + „Später bezahlen" anklicken</li><li>Speichern und die Bestätigung prüfen</li></ol>' },
+          { q: 'Wie bekomme ich meine Autoorder kostenlos?', a: 'Wenn ein Partner mindestens 4 Kundenpunkte und 40 Credits von seinen Kunden der ersten Generation hat, ist er qualifiziert. In den ersten 120 Tagen erhält der Partner einen Rabatt von 50% auf die benötigten Credits.' },
+          { q: 'Wie kann ich sehen, ob die Autoorder kostenlos ist?', a: 'Gehen Sie im Backoffice auf Berichterstattung ⇒ Z4F. Sie gelangen automatisch zur aktuellen Monatssituation – hier können Sie sehen, wie viele Credits und Kundenpunkte Sie gesammelt haben.' },
+          { q: 'Wie kann ich mein Abonnement upgraden/aufschieben/stornieren?', a: 'Bitte wenden Sie sich an den Kundenservice, um Änderungen an Ihrem Abonnement vorzunehmen. Sie können Ihr Abonnement für maximal 90 Tage unterbrechen. Bei der Stornierung des Abonnements innerhalb der ersten sechs Monate fällt eine Gebühr an.' },
+          { q: 'Wie lange beträgt die Laufzeit meines Abonnements?', a: 'Die Laufzeit umfasst 6 monatliche Abonnementzahlungen, nachdem Sie Ihre Startbestellung bezahlt haben. Sie haben eine Kündigungsfrist von 30 Tagen. Sie zahlen eine monatliche Abonnementsgebühr und werden alle zwei Monate beliefert.' },
+          { q: 'Kann ein Kunde bestellen, ohne ein Abo abzuschließen?', a: 'Ja, wir bieten all unsere Produkte zum einmaligen Kauf an. Beachten Sie jedoch, dass die ermäßigten Preise nur gelten, wenn Sie ein Abonnement als Premier-Kunde abschließen.' },
+          { q: 'Wo finde ich meine Bestellung?', a: 'Sie können Ihre Lieferung verfolgen, indem Sie sich über Ihr Konto anmelden. Anmelden → Mein Konto → Bestellungen.' },
+          { q: 'Wie kann ich mein Paket zurücksenden?', a: 'Bei stornierten Käufen erfolgt die Rücksendung auf eigene Kosten. Wenn die Waren beschädigt sind, ist Zinzino verpflichtet, die Rücksendekosten zu übernehmen. Auf Anfrage sendet Zinzino ein Rücksendeetikett zu.' }
         ]
       },
       {
-        category: 'Support & Service',
+        category: 'Onboarding & erste Schritte',
+        icon: '🎯',
         items: [
-          { q: 'Wie erreiche ich den Support?', a: 'Über die Zinzino-Kundenservice-Seite: zinzino.com → Über uns → Kundenservice' },
-          { q: 'Wie lasse ich mir Geld auszahlen?', a: 'Webkonto freischalten lassen (länderspezifisch: Deutschland, Österreich, Schweiz haben separate Anleitungen im Forum).' }
+          { q: 'Ich weiß nicht, ob ich Leute finde, die ich ansprechen kann?', a: 'Ich verstehe gut, dass es dir jetzt gerade so vorkommt, als würdest du niemanden kennen, der sich dafür interessiert. Schau dir gerne den Memory Jogger auf der zweiten Seite unserer Namensliste an und überleg gemeinsam mit uns:<ul><li>mit wem möchte ich mehr Zeit verbringen?</li><li>wer ist auf der Suche nach einer beruflichen Veränderung?</li><li>wer ist total unglücklich in seinem Job?</li><li>wer möchte etwas mehr vom Leben?</li><li>bei wem sehe ich besonders großes Potenzial?</li><li>Bei wem ist es mir wichtig, dass es ihm gesundheitlich gut geht?</li></ul>' },
+          { q: 'Wie war das jetzt nochmal mit der AutoOrder und der UPK-Rückerstattung?', a: 'Um die volle Rückerstattung des UPK zu erhalten, ist eine der Voraussetzungen, dass deine Auto Order über den Zeitraum von zwölf Monaten nach deinem Einstieg durchgängig aktiv war. Du kannst dir diese Auto Order kostenfrei verdienen, in dem du eigene Kunden und somit Punkte und Credits generierst. In den ersten vier Monaten genügen vier Kunden Punkte und 20 Credits. Ab dem fünften Monat bedarf es vier Kunden Punkte und 40 Credits.' },
+          { q: 'Kann ich die Produkte nicht erst mal für mich testen?', a: 'Es ist eine super Idee, die Produkte für dich selbst zu testen, um aus eigener Erfahrung sprechen zu können! Unsere Empfehlung ist jedoch, schon während du selbst deine Erfahrungen machst, Interessenten auf die Produkte anzusprechen. Keep it simple ist hier das Zauberwort.' },
+          { q: 'Wie gehe ich da jetzt vor beim Einladen in einen 2:1 Call?', a: 'Ein kurzer Call ist mit Abstand die beste und zeiteffizienteste Möglichkeit. Die Vorteile sind: ein Experte nimmt sich Zeit für dich, du bekommst alle Infos in kurzer Zeit, du musst dich nicht selbst einlesen, wir können direkt auf Rückfragen eingehen. Übung macht den Meister – übe gerne gemeinsam mit deiner Ansprechperson ein paar dieser Einladungen ein.' },
+          { q: 'Wann kommt die nächste Version vom Agenten?', a: 'Oktober' }
         ]
       },
       {
-        category: 'Allgemein',
+        category: 'Gesprächsführung & Ansprache',
+        icon: '💬',
         items: [
-          { q: 'Was sind zRewards?', a: 'Bonus-Punkte im Kundenprogramm für Partner ab X-Team. Einlösbar für Bestellungen von Einzelprodukten. Bestellungen mit zRewards generieren keine PCP/PCV.' },
-          { q: 'Literaturtipp', a: '<strong>Dr. Michael Nehls – „Das erschöpfte Gehirn"</strong> – Zusammenhang zwischen Fettsäuren, Lebensstil und mentaler Gesundheit.' }
+          { q: 'Wie kann ich meine Schwester/Bruder/Freundin etc. einladen?', a: 'Nutze unseren bewährten 3-Schritte-Ansatz. Beispiel für Gesundheitskonzept: "Hey Peter, ich hoffe es geht Dir gut? Du bist ja jemand, der schon immer sehr auf seine Gesundheit geachtet hat. Ich habe ein testbasiertes Gesundheitskonzept aus Skandinavien kennengelernt. Das Ganze basiert auf einem Test mit dem man herausfinden kann, wie viel von den Nährstoffen, die man seinem Körper gibt, überhaupt in den Zellen ankommen. Und was ich dabei gelernt habe, dass bei ganzen 97% der Menschen weltweit garnicht alle Nährstoffe ankommen, die man seinem Körper jeden Tag gibt."' },
+          { q: 'Beispiel für Business-Konzept', a: '"Hallo Mareike, ich wollte mich mal kurz melden, weil ich vor kurzem an dich denken musste. Du hast ja schon öfter erzählt, dass du mit deinem aktuellen Job unzufrieden bist. Ich habe eine Möglichkeit kennengelernt, wie man sich nebenbei von zu Hause aus etwas aufbauen kann im Gesundheitsbereich mit einem System, das ganz vielen Menschen gesundheitlich hilft."' }
+        ]
+      },
+      {
+        category: 'Business & Verdienst',
+        icon: '💰',
+        items: [
+          { q: 'Wie kann ich mir Geld auszahlen lassen bei Zinzino?', a: 'Hierzu musst Du Dir Dein Webkonto freischalten lassen.' },
+          { q: 'Welches Buch kann ich für die Weiterbildung im NWM lesen?', a: '"Go Pro – 7 Schritte zum Network Marketing Profi" – vermittelt auf 160 leicht zu lesenden Seiten das nötige Mindset und die zentralen Fähigkeiten.' },
+          { q: 'Wie bekomme ich einen Überblick über das Backoffice?', a: 'Schau Dir gerne unser Video hierzu an, hier bekommst Du einen guten Überblick.' },
+          { q: 'Es finden so viele Vorträge und Calls statt. Welche sind für mich relevant?', a: '<strong>Montags um 19:00 Uhr:</strong> Fireadler Teamcall (wöchentlich)<br><strong>Mittwochs um 20:30:</strong> EMPOWER-Teamcall (wöchentlich)<br><br>Diese beiden Calls sind die wichtigsten der Woche.<br>Hier der Link zum Kalender: Zinzino TEAM EMPOWER' }
+        ]
+      },
+      {
+        category: 'Technische Fragen & Support',
+        icon: '🔧',
+        items: [
+          { q: 'Wie kann ich den Support erreichen?', a: 'Auf dieser Seite findest Du alle Kontaktmöglichkeiten des Zinzino-Kundenservice.' },
+          { q: 'Wo finde ich den Compensation Plan?', a: 'Logge dich bitte in Dein Backoffice ein, dann findest Du den Compensation Plan unter Datei-Bibliothek ⇒ Partnermaterialien ⇒ Compensation Plan.' }
         ]
       }
     ];
 
-    function renderFAQ(searchTerm) {
+    function buildFAQNav() {
+      const nav = document.getElementById('faqNav');
+      let html = '<button class="faq-nav-pill active" onclick="filterFAQByCategory(null)"><span class="pill-icon">📚</span> Alle</button>';
+      for (const cat of FAQ_DATA) {
+        html += `<button class="faq-nav-pill" onclick="filterFAQByCategory('${escapeHtml(cat.category)}')"><span class="pill-icon">${cat.icon || ''}</span> ${escapeHtml(cat.category)}</button>`;
+      }
+      nav.innerHTML = html;
+    }
+
+    let activeFAQCategory = null;
+
+    function filterFAQByCategory(category) {
+      activeFAQCategory = category;
+      // Update pill states
+      document.querySelectorAll('.faq-nav-pill').forEach(pill => {
+        const isAll = pill.textContent.trim().startsWith('Alle');
+        if (category === null && isAll) pill.classList.add('active');
+        else if (category && pill.textContent.includes(category)) pill.classList.add('active');
+        else pill.classList.remove('active');
+      });
+      // Clear search when navigating by category
+      document.getElementById('faqSearchInput').value = '';
+      renderFAQ('', category);
+      // Scroll to content
+      if (category) {
+        const el = document.querySelector('.faq-category');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function renderFAQ(searchTerm, filterCategory) {
       const container = document.getElementById('faqContent');
       const noResults = document.getElementById('faqNoResults');
       const term = (searchTerm || '').toLowerCase().trim();
+      const catFilter = filterCategory !== undefined ? filterCategory : activeFAQCategory;
       let html = '';
       let totalMatches = 0;
 
       for (const cat of FAQ_DATA) {
+        // Category filter
+        if (catFilter && cat.category !== catFilter) continue;
+
         let catHtml = '';
         let catMatches = 0;
 
@@ -2057,7 +2156,7 @@
         }
 
         if (catMatches > 0) {
-          html += `<div class="faq-category"><div class="faq-category-title">${escapeHtml(cat.category)}</div>${catHtml}</div>`;
+          html += `<div class="faq-category"><div class="faq-category-title">${cat.icon || ''} ${escapeHtml(cat.category)}</div>${catHtml}</div>`;
           totalMatches += catMatches;
         }
       }
@@ -2077,11 +2176,19 @@
 
     function filterFAQ() {
       const term = document.getElementById('faqSearchInput').value;
+      if (term.trim()) {
+        // When searching, reset category filter and pills
+        activeFAQCategory = null;
+        document.querySelectorAll('.faq-nav-pill').forEach(pill => {
+          pill.classList.toggle('active', pill.textContent.trim().startsWith('Alle'));
+        });
+      }
       renderFAQ(term);
     }
 
     // Initialize on page load
     checkLoginState();
+    buildFAQNav();
     renderFAQ();
   </script>
 </body>
