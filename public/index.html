@@ -603,6 +603,20 @@
     .chat-input-row button:hover { background: #3a5ce5; }
     .chat-input-row button:disabled { background: #999; cursor: not-allowed; }
 
+    .usage-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 20px;
+      font-size: 11px;
+      color: #888;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+      border-radius: 0 0 16px 16px;
+    }
+    .usage-bar span { white-space: nowrap; }
+    .usage-detail { display: flex; gap: 12px; }
+
     @media (max-width: 600px) {
       .app-header { align-items: center; }
       .app-header-left h1 { font-size: 20px; }
@@ -681,8 +695,8 @@
               <tr>
                 <th>Fettsäure</th>
                 <th class="col-chem">Chem. Name</th>
-                <th>Ihr Wert</th>
                 <th>Ihr Zielwert</th>
+                <th>Ihr Wert</th>
                 <th>Abw.</th>
               </tr>
             </thead>
@@ -721,6 +735,13 @@
           <div class="chat-input-row">
             <textarea id="chatInput" placeholder="Ihre Frage eingeben..." rows="2"></textarea>
             <button id="chatSendBtn" onclick="sendChat()">Senden</button>
+          </div>
+          <div class="usage-bar" id="usageBar" style="display:none">
+            <div class="usage-detail">
+              <span id="usageTokens">Tokens: 0</span>
+              <span id="usageCost">Kosten: $0.000</span>
+            </div>
+            <span id="usageRequests">Anfragen: 0</span>
           </div>
         </div>
       </div>
@@ -1391,8 +1412,8 @@
             <tr>
               <td style="padding-left:20px">${deName} ${tooltip}</td>
               <td class="col-chem">${fa['Chemical name']}</td>
-              <td>${fa.Value}%</td>
               <td>${targetStr}</td>
+              <td>${fa.Value}%</td>
               <td class="${devClass}">${devDisplay}</td>
             </tr>
           `;
@@ -1421,6 +1442,31 @@
     let chatMessages = { beratung: [], allgemein: [] };
     let activeTab = 'beratung';
     let isStreaming = false;
+
+    // Usage tracking (session-based)
+    let usageStats = { inputTokens: 0, outputTokens: 0, totalTokens: 0, requests: 0 };
+    // Gemini 3.1 Flash Lite pricing (per 1M tokens)
+    const PRICE_INPUT = 0.25;   // $/1M input tokens
+    const PRICE_OUTPUT = 1.50;  // $/1M output tokens
+
+    function updateUsageDisplay(usageMeta) {
+      if (!usageMeta) return;
+      usageStats.inputTokens += (usageMeta.promptTokenCount || 0);
+      usageStats.outputTokens += (usageMeta.candidatesTokenCount || 0);
+      usageStats.totalTokens += (usageMeta.totalTokenCount || 0);
+      usageStats.requests++;
+
+      const cost = (usageStats.inputTokens / 1e6) * PRICE_INPUT
+                 + (usageStats.outputTokens / 1e6) * PRICE_OUTPUT;
+
+      document.getElementById('usageTokens').textContent =
+        `Tokens: ${usageStats.totalTokens.toLocaleString('de-DE')}`;
+      document.getElementById('usageCost').textContent =
+        `Kosten: $${cost.toFixed(4)}`;
+      document.getElementById('usageRequests').textContent =
+        `Anfragen: ${usageStats.requests}`;
+      document.getElementById('usageBar').style.display = 'flex';
+    }
 
     function escapeHtml(str) {
       const div = document.createElement('div');
@@ -1520,6 +1566,8 @@
       sessionStorage.removeItem('zinzino_token');
       chatMessages = { beratung: [], allgemein: [] };
       activeTab = 'beratung';
+      usageStats = { inputTokens: 0, outputTokens: 0, totalTokens: 0, requests: 0 };
+      document.getElementById('usageBar').style.display = 'none';
       document.getElementById('tabBeratung').classList.add('active');
       document.getElementById('tabAllgemein').classList.remove('active');
       restoreChatHistory('beratung');
@@ -1655,6 +1703,9 @@
                 fullText += parsed.text;
                 bubble.innerHTML = renderMarkdown(fullText);
                 msgArea.scrollTop = msgArea.scrollHeight;
+              }
+              if (parsed.usage) {
+                updateUsageDisplay(parsed.usage);
               }
               if (parsed.error) {
                 bubble.innerHTML += `<br><em style="color:#ef4444">${escapeHtml(parsed.error)}</em>`;

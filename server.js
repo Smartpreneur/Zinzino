@@ -172,6 +172,16 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
+    // Send usage metadata for token tracking
+    try {
+      const response = await result.response;
+      if (response.usageMetadata) {
+        res.write(`data: ${JSON.stringify({ usage: response.usageMetadata })}\n\n`);
+      }
+    } catch (e) {
+      console.error('Could not read usageMetadata:', e.message);
+    }
+
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
