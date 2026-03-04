@@ -533,6 +533,31 @@
       cursor: pointer;
     }
     .prompt-login-btn:hover { background: #3a5ce5; }
+    .tab-login-form {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .tab-login-input {
+      padding: 10px 14px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      font-size: 14px;
+      width: 200px;
+      outline: none;
+    }
+    .tab-login-input:focus {
+      border-color: #4a6cf7;
+      box-shadow: 0 0 0 3px rgba(74,108,247,0.1);
+    }
+    .tab-login-error {
+      color: #e53e3e;
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center;
+    }
     .tab-chat { display: flex; flex-direction: column; }
     .chat-messages {
       height: 400px;
@@ -922,7 +947,11 @@
         <div class="tab-login-prompt" id="testLoginPrompt">
           <div class="prompt-icon">&#128274;</div>
           <p>Melden Sie sich an, um Fragen zu Ihren Ergebnissen zu stellen.</p>
-          <button onclick="toggleLoginDropdown()" class="prompt-login-btn">Jetzt anmelden</button>
+          <div class="tab-login-form">
+            <input type="password" class="tab-login-input" id="testLoginPassword" placeholder="Passwort" onkeydown="if(event.key==='Enter')doTabLogin('test')" />
+            <button onclick="doTabLogin('test')" class="prompt-login-btn">Freischalten</button>
+          </div>
+          <div class="tab-login-error" id="testLoginError" style="display:none"></div>
         </div>
         <div class="tab-chat" id="testChat" style="display:none">
           <div class="chat-openers" id="testOpeners">
@@ -952,7 +981,11 @@
         <div class="tab-login-prompt" id="agentLoginPrompt">
           <div class="prompt-icon">&#128274;</div>
           <p>Melden Sie sich an, um den KI-Agenten zu nutzen.</p>
-          <button onclick="toggleLoginDropdown()" class="prompt-login-btn">Jetzt anmelden</button>
+          <div class="tab-login-form">
+            <input type="password" class="tab-login-input" id="agentLoginPassword" placeholder="Passwort" onkeydown="if(event.key==='Enter')doTabLogin('agent')" />
+            <button onclick="doTabLogin('agent')" class="prompt-login-btn">Freischalten</button>
+          </div>
+          <div class="tab-login-error" id="agentLoginError" style="display:none"></div>
         </div>
         <div class="tab-chat" id="agentChat" style="display:none">
           <div class="chat-openers" id="agentOpeners">
@@ -1839,6 +1872,42 @@
         sessionStorage.setItem('zinzino_token', data.token);
         document.getElementById('loginPassword').value = '';
         document.getElementById('loginPanel').classList.remove('open');
+        checkLoginState();
+      } catch (err) {
+        errEl.textContent = 'Verbindungsfehler';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function doTabLogin(source) {
+      const pwInput = document.getElementById(source + 'LoginPassword');
+      const errEl = document.getElementById(source + 'LoginError');
+      const pw = pwInput.value;
+      errEl.style.display = 'none';
+
+      if (!pw) {
+        errEl.textContent = 'Bitte Passwort eingeben';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const resp = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          errEl.textContent = data.error || 'Login fehlgeschlagen';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        sessionStorage.setItem('zinzino_token', data.token);
+        pwInput.value = '';
         checkLoginState();
       } catch (err) {
         errEl.textContent = 'Verbindungsfehler';
