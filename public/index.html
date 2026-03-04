@@ -779,6 +779,41 @@
     @media (max-width: 400px) {
       .tab-btn { font-size: 12px; padding: 10px 6px; }
     }
+
+    /* Branding Badge */
+    .branding-badge {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-decoration: none;
+      color: #555;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+    .branding-badge:hover {
+      border-color: #4a6cf7;
+      color: #4a6cf7;
+      box-shadow: 0 4px 12px rgba(74, 108, 247, 0.15);
+      transform: translateY(-1px);
+    }
+    .branding-badge .brand-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(135deg, #4a6cf7, #7c3aed);
+      flex-shrink: 0;
+    }
+    @media (max-width: 600px) {
+      .branding-badge { bottom: 10px; right: 10px; padding: 6px 10px; font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -953,6 +988,11 @@
       </div>
     </div>
   </div>
+
+  <a href="https://kuehn.it" target="_blank" rel="noopener" class="branding-badge" title="Entwickelt von Kühne.it">
+    <span class="brand-dot"></span>
+    Entwickelt von <strong>Kühne.it</strong>
+  </a>
 
   <script>
     // ===== MARKER CONFIGURATIONS (Deutsch, Reihenfolge wie im Zinzino-Report) =====
