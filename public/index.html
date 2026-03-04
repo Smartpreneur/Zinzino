@@ -784,14 +784,14 @@
     .branding-badge {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: transparent;
+      gap: 8px;
+      padding: 5px 10px 5px 12px;
+      background: white;
       border: 1px solid #e5e7eb;
-      border-radius: 16px;
+      border-radius: 20px;
       text-decoration: none;
       color: #888;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 500;
       transition: all 0.2s;
       white-space: nowrap;
@@ -799,14 +799,15 @@
     .branding-badge:hover {
       border-color: #4a6cf7;
       color: #4a6cf7;
+      box-shadow: 0 2px 8px rgba(74, 108, 247, 0.12);
     }
-    .branding-badge .brand-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: linear-gradient(135deg, #4a6cf7, #7c3aed);
-      flex-shrink: 0;
+    .branding-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
     }
     @media (max-width: 600px) {
-      .branding-badge { padding: 4px 8px; font-size: 10px; }
+      .branding-badge { padding: 4px 6px 4px 8px; font-size: 10px; gap: 6px; }
+      .branding-avatar { width: 22px; height: 22px; }
     }
   </style>
 </head>
@@ -821,9 +822,9 @@
         </div>
       </div>
       <div class="app-header-right" style="display:flex;align-items:center;gap:12px;">
-        <a href="https://kuehn.it" target="_blank" rel="noopener" class="branding-badge" title="Entwickelt von Kühne.IT">
-          <span class="brand-dot"></span>
-          Entwickelt von <strong>Kühne.IT</strong>
+        <a href="https://kuehn.it" target="_blank" rel="noopener" class="branding-badge" title="Entwickelt von Christopher Kühne">
+          Entwickelt von
+          <img src="Profilbild%20Christopher.png" alt="Christopher Kühne" class="branding-avatar" />
         </a>
         <div class="login-dropdown" id="loginDropdown">
           <button class="login-trigger" id="loginTrigger" onclick="toggleLoginDropdown()" title="Anmelden">
