@@ -366,8 +366,9 @@
     .deviation-pos { color: #ef4444; font-weight: 600; }
     .deviation-neg { color: #3b82f6; font-weight: 600; }
     .deviation-ok { color: #22c55e; font-weight: 600; }
-    .deviation-warn { color: #d97706; font-weight: 600; }
+    .deviation-warn { color: #b45309; font-weight: 600; }
     .deviation-crit { color: #dc2626; font-weight: 600; }
+    .deviation-ok td, .deviation-warn td, .deviation-crit td { transition: background 0.2s; }
 
     .fa-cat-row td {
       background: #f8f9fb;
@@ -1683,22 +1684,22 @@
             if (target > 0) devPct = ((val - target) / target) * 100;
           }
 
-          // Color: 0% = green, ±10% = yellow, beyond = red
+          // Color: 0 = green, >0 bis ±10% = yellow, darüber = red
           const absPct = Math.abs(devPct);
           let devColorClass, devBg;
-          if (absPct <= 2) {
+          if (absPct < 1) {
             devColorClass = 'deviation-ok';
-            devBg = 'rgba(34,197,94,0.08)';
+            devBg = 'rgba(34,197,94,0.10)';
           } else if (absPct <= 10) {
             devColorClass = 'deviation-warn';
-            devBg = 'rgba(245,158,11,0.08)';
+            devBg = 'rgba(245,158,11,0.10)';
           } else {
             devColorClass = 'deviation-crit';
-            devBg = 'rgba(239,68,68,0.08)';
+            devBg = 'rgba(239,68,68,0.10)';
           }
 
-          // Format deviation display as percentage
-          const devDisplay = (devPct > 0 ? '+' : '') + devPct.toFixed(0) + '%';
+          // Format deviation display as percentage with sign
+          const devDisplay = devPct === 0 ? '0%' : (devPct > 0 ? '+' : '') + devPct.toFixed(1) + '%';
 
           const info = FA_INFO[fa.Fieldname];
           const deName = info ? info.de : fa.Fieldname;
@@ -1710,7 +1711,7 @@
               <td class="col-chem">${fa['Chemical name']}</td>
               <td>${targetStr}</td>
               <td>${fa.Value}%</td>
-              <td class="${devColorClass}" style="background:${devBg}">${devDisplay}</td>
+              <td class="${devColorClass}" style="background:${devBg};border-radius:6px">${devDisplay}</td>
             </tr>
           `;
         }
