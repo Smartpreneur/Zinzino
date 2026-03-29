@@ -1098,9 +1098,9 @@
       },
       'cellmembrane': {
         apiField: 'Cell Membrane Fluidity Index',
-        title: 'Nährstoffdurchlässigkeit',
+        title: 'Zellmembran-Fluidität',
         ticks: [25, 9, 4, 1],
-        tickLabels: ['16%', '44%', '100%', '400%'],
+        tickLabels: ['25:1', '9:1', '4:1', '1:1'],
         segColors: ['red', 'yellow', 'green'],
         reversed: true,
         unit: ':1',
@@ -1351,7 +1351,7 @@
           <div class="summary-row">
             ${renderMiniCard('Omega-3-Index', omega3Color, MARKER_CONFIGS.omega3.statusLabels[omega3Color], omega3Val.toFixed(1) + '%')}
             ${renderMiniCard('Mentale Stärke', mentalColor, MARKER_CONFIGS.mental.statusLabels[mentalColor], mentalVal.toFixed(1) + ':1')}
-            ${renderMiniCard('Nährstoffdurchlässigkeit', cellColor, MARKER_CONFIGS.cellmembrane.statusLabels[cellColor], Math.round(400 / cellVal) + '%')}
+            ${renderMiniCard('Zellmembran-Fluidität', cellColor, MARKER_CONFIGS.cellmembrane.statusLabels[cellColor], cellVal.toFixed(1) + ':1 (' + Math.round(400 / cellVal) + '%)')}
             ${renderMiniCard('Arachidonsäure(AA)-Index', aaColor, aaConfig.statusLabels[aaColor], aaValue !== null ? aaValue.toFixed(1) + '%' : '-')}
           </div>
         </div>
@@ -1386,7 +1386,7 @@
         { name: 'Schutzwert', color: protection?.Color, val: protection ? Math.round(parseFloat(protection.Value)) + '%' : '-' },
         { name: 'Omega-3-Index', color: omega3?.Color, val: omega3 ? parseFloat(omega3.Value).toFixed(1) + '%' : '-' },
         { name: 'Mentale Stärke', color: mental?.Color, val: mental ? parseFloat(mental.Value).toFixed(1) + ':1' : '-' },
-        { name: 'Nährstoffdurchlässigkeit', color: cell?.Color, val: cell ? Math.round(400 / parseFloat(cell.Value)) + '%' : '-' },
+        { name: 'Zellmembran-Fluidität', color: cell?.Color, val: cell ? parseFloat(cell.Value).toFixed(1) + ':1 (' + Math.round(400 / parseFloat(cell.Value)) + '%)' : '-' },
         { name: 'Arachidonsäure(AA)-Index', color: aaValue !== null ? getColorForValue(aaValue, MARKER_CONFIGS.aa_index) : null, val: aaValue !== null ? aaValue.toFixed(1) + '%' : '-' },
       ];
 
@@ -1537,7 +1537,7 @@
       const arrowPos = calcArrowPosition(value, config);
       const statusLabel = statusLabels[color] || '';
       const description = descriptions[color] || '';
-      const formattedVal = altDisplay ? Math.round(400 / value) + '%' : value.toFixed(decimals) + unit;
+      const formattedVal = altDisplay ? value.toFixed(decimals) + unit + ' (' + Math.round(400 / value) + '%)' : value.toFixed(decimals) + unit;
 
       // Build gradient segments
       let segsHtml = '';
