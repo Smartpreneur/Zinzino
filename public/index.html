@@ -1894,26 +1894,13 @@
             targetStr = `${fa.Target}%`;
           }
 
-          // Calculate deviation as percentage relative to target midpoint
-          const val = parseFloat(fa.Value);
-          let devPct = 0;
-          if (Array.isArray(targetRange) && targetRange.length === 2) {
-            const lo = parseFloat(targetRange[0]);
-            const hi = parseFloat(targetRange[1]);
-            const mid = (lo + hi) / 2;
-            if (mid > 0) devPct = ((val - mid) / mid) * 100;
-          } else {
-            const target = parseFloat(fa.Target);
-            if (target > 0) devPct = ((val - target) / target) * 100;
-          }
-
-          // Color: 0 = green, >0 bis ±10% = yellow, darüber = red
-          const absPct = Math.abs(devPct);
+          // Use original API deviation value with color coding
+          const absDevNum = Math.abs(devNum);
           let devColorClass, devBg;
-          if (absPct < 1) {
+          if (isNaN(devNum) || absDevNum < 1) {
             devColorClass = 'deviation-ok';
             devBg = 'rgba(34,197,94,0.10)';
-          } else if (absPct <= 10) {
+          } else if (absDevNum <= 10) {
             devColorClass = 'deviation-warn';
             devBg = 'rgba(245,158,11,0.10)';
           } else {
@@ -1921,8 +1908,8 @@
             devBg = 'rgba(239,68,68,0.10)';
           }
 
-          // Format deviation display as percentage with sign
-          const devDisplay = devPct === 0 ? '0%' : (devPct > 0 ? '+' : '') + devPct.toFixed(1) + '%';
+          // Format: original API deviation value + % sign
+          const devDisplay = isNaN(devNum) ? (fa.Deviation || '0%') : (devNum > 0 ? '+' : '') + devNum.toFixed(2) + '%';
 
           const info = FA_INFO[fa.Fieldname];
           const deName = info ? info.de : fa.Fieldname;
