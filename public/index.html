@@ -397,6 +397,88 @@
     section { margin-bottom: 24px; }
     section h2 { font-size: 20px; margin-bottom: 16px; color: #1a1a2e; }
 
+    /* Top Tips */
+    .top-tips {
+      margin-bottom: 24px;
+    }
+    .top-tips h2 {
+      font-size: 20px;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .tip-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid #4a6cf7;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tip-card .tip-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #4a6cf7;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .tip-card .tip-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tip-card .tip-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .tip-card .tip-status {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+    .tip-card .tip-action {
+      font-size: 13px;
+      color: #1a1a2e;
+      line-height: 1.5;
+      background: #f0f4ff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: auto;
+    }
+    .tip-card .tip-action strong {
+      color: #4a6cf7;
+    }
+    .tip-card .tip-marker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .tip-marker-red { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .tip-marker-yellow { background: rgba(245,158,11,0.1); color: #b45309; }
+    @media (max-width: 700px) {
+      .tips-grid { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 700px) {
       .zinzino-summary { grid-template-columns: 1fr; }
       .hero-card { grid-column: 1; }
@@ -915,6 +997,8 @@
           <div class="analysis-text" id="analysisText"></div>
         </div>
 
+        <div id="topTips" style="display:none"></div>
+
         <div class="person-info" id="personInfo"></div>
         <div id="zinzinoSummary"></div>
 
@@ -1269,6 +1353,144 @@
       }
     }
 
+    // ===== TOP 3 TIPS =====
+    function renderTopTips(markers, fattyAcids, meta, aaValue) {
+      const el = document.getElementById('topTips');
+      const isChild = meta && parseInt(meta.Age) < 18;
+      const weight = meta ? parseFloat(meta.Weight) || 70 : 70;
+
+      const ratio = markers.find(m => m.Fieldname.includes('Balance'));
+      const protection = markers.find(m => m.Fieldname.includes('Protection'));
+      const omega3 = markers.find(m => m.Fieldname.includes('EPA+DHA'));
+      const mental = markers.find(m => m.Fieldname.includes('Mental'));
+      const cell = markers.find(m => m.Fieldname.includes('Cell Membrane'));
+
+      const epaFA = fattyAcids.find(f => f.Fieldname === 'EPA');
+      const dhaFA = fattyAcids.find(f => f.Fieldname === 'DHA');
+
+      const ratioVal = ratio ? parseFloat(ratio.Value) : 0;
+      const protVal = protection ? parseFloat(protection.Value) : 0;
+      const omega3Val = omega3 ? parseFloat(omega3.Value) : 0;
+      const cellVal = cell ? parseFloat(cell.Value) : 0;
+      const mentalVal = mental ? parseFloat(mental.Value) : 0;
+      const epaVal = epaFA ? parseFloat(epaFA.Value) : 0;
+      const dhaVal = dhaFA ? parseFloat(dhaFA.Value) : 0;
+
+      const dose = (weight * 0.15).toFixed(0);
+
+      // Build candidates sorted by priority
+      const tips = [];
+
+      // 1. Omega-6:3 Balance
+      if (ratio && ratio.Color !== 'green') {
+        tips.push({
+          title: 'Omega-6:3-Balance ausgleichen',
+          marker: ratio.Color,
+          status: `Dein Verhältnis liegt bei ${Math.round(ratioVal)}:1 – ${ratio.Color === 'red' ? 'deutlich zu hoch' : 'noch nicht optimal'}. Das Ziel ist 3:1 oder besser. Ein erhöhtes Verhältnis bedeutet, dass entzündungsfördernde Prozesse im Körper überwiegen – wie zu viele Brände ohne genug Feuerwehr.`,
+          action: `<strong>BalanceOil</strong> täglich ${dose} ml einnehmen (0,15 ml pro kg Körpergewicht). Das marine Omega-3 bringt die „Feuerwehr" zurück und gleicht das Verhältnis aus. Retest nach 120 Tagen empfohlen.`
+        });
+      }
+
+      // 2. Omega-3-Index
+      if (omega3 && omega3.Color !== 'green') {
+        const doubleHint = omega3Val < 4 ? ' Bei einem Index unter 4% empfiehlt sich eine erhöhte Startdosis für die ersten 3–4 Wochen.' : '';
+        tips.push({
+          title: 'Omega-3-Index anheben',
+          marker: omega3.Color,
+          status: `Dein Omega-3-Index liegt bei ${omega3Val.toFixed(1)}% – ${omega3.Color === 'red' ? 'im kritischen Bereich' : 'noch unter dem Zielwert'}. Ab 8% beginnt die Zellregeneration und Anti-Aging. Der optimale Bereich liegt bei 8–12%.`,
+          action: `<strong>BalanceOil</strong> mit ${dose} ml täglich liefert hochwertiges EPA & DHA aus marinem Omega-3.${doubleHint} In Kombination mit 2–3× wöchentlich fettem Seefisch (Lachs, Makrele, Hering).`
+        });
+      }
+
+      // 3. Protection / Schutzwert
+      if (protection && protection.Color !== 'green') {
+        tips.push({
+          title: 'Schutzwert erhöhen',
+          marker: protection.Color,
+          status: `Dein Schutzwert liegt bei ${Math.round(protVal)}% – ${protection.Color === 'red' ? 'dein Körper hat kaum zelluläre Reserven' : 'noch ausbaufähig'}. Ziel sind mindestens 90%. Der Schutzwert zeigt, wie gut dein Körper insgesamt vor Entzündungen geschützt ist.`,
+          action: `<strong>BalanceOil</strong> bildet die Basis. Ergänzend <strong>Xtend+</strong> für 22 Vitamine und Mineralstoffe, die als Co-Faktoren für den Schutzaufbau essentiell sind.`
+        });
+      }
+
+      // 4. Cell Membrane Fluidity
+      if (cell && cell.Color !== 'green') {
+        const pct = Math.round(400 / cellVal);
+        tips.push({
+          title: 'Nährstoffdurchlässigkeit verbessern',
+          marker: cell.Color,
+          status: `Deine Zellmembranen lassen aktuell nur ${pct}% der Nährstoffe durch (${cellVal.toFixed(1)}:1). Das bedeutet: Selbst wenn du dich gut ernährst, kommt zu wenig davon in den Zellen an. Zu viele gesättigte Fette machen die Membran „steif".`,
+          action: `<strong>BalanceOil</strong> macht die Zellmembranen flexibler und durchlässiger. Zusätzlich gesättigte Fette reduzieren (weniger frittierte Lebensmittel, Palmöl, fettes Fleisch) und mehr Olivenöl und Avocado einbauen.`
+        });
+      }
+
+      // 5. Mental Strength
+      if (mental && mental.Color !== 'green') {
+        tips.push({
+          title: 'Mentale Stärke aufbauen',
+          marker: mental.Color,
+          status: `Dein DHA:AA-Verhältnis liegt bei ${mentalVal.toFixed(1)}:1 – ${mental.Color === 'red' ? 'dein Gehirn ist unterversorgt' : 'noch nicht optimal'}. DHA ist der wichtigste Baustein für Gehirn- und Nervenzellen (10–15% des Hirnfetts).`,
+          action: `<strong>BalanceOil</strong> liefert DHA für die Gehirnversorgung. Ergänzend <strong>Viva+</strong> mit Safran-Extrakt und B-Vitaminen für Stimmung und Stressresistenz.`
+        });
+      }
+
+      // 6. AA-Index
+      if (aaValue !== null) {
+        const aaColor = getColorForValue(aaValue, MARKER_CONFIGS.aa_index);
+        if (aaColor !== 'green') {
+          if (aaValue > 12.5) {
+            tips.push({
+              title: 'Arachidonsäure senken',
+              marker: 'red',
+              status: `Dein AA-Index liegt bei ${aaValue.toFixed(1)}% – zu viel entzündungsfördernde Arachidonsäure. Häufig durch hohen Konsum von rotem Fleisch, Eiern und Sonnenblumenöl verursacht.`,
+              action: `Tierische AA-Quellen auf max. 2 Portionen/Woche reduzieren. <strong>BalanceOil</strong> mit mindestens 2 g EPA+DHA täglich, um den Gegenspieler aufzubauen. Sonnenblumenöl durch Olivenöl ersetzen.`
+            });
+          } else if (aaValue < 4.5) {
+            tips.push({
+              title: 'Arachidonsäure anheben',
+              marker: 'yellow',
+              status: `Dein AA-Index ist mit ${aaValue.toFixed(1)}% zu niedrig. AA wird für Immunreaktionen, Zellmembranen und Muskelreparatur benötigt.`,
+              action: `Mehr AA-haltige Lebensmittel einbauen: Eier (2–3/Woche), Geflügel und fetter Fisch wie Lachs. Eine moderate Steigerung reicht meist aus.`
+            });
+          } else if (epaVal < 3.33) {
+            tips.push({
+              title: 'EPA auffüllen',
+              marker: 'yellow',
+              status: `Dein AA-Index ist leicht erhöht (${aaValue.toFixed(1)}%), aber das liegt am EPA-Mangel (${epaVal.toFixed(1)}%). EPA ist die „Berufsfeuerwehr" – fehlt sie, gerät das Gleichgewicht ins Wanken.`,
+              action: `<strong>BalanceOil</strong> mit ${dose} ml täglich – der EPA-Anteil gleicht das Verhältnis aus. Nicht die AA-Zufuhr reduzieren, sondern EPA auffüllen!`
+            });
+          }
+        }
+      }
+
+      // Take top 3
+      const top3 = tips.slice(0, 3);
+
+      if (top3.length === 0) {
+        el.style.display = 'none';
+        return;
+      }
+
+      el.style.display = 'block';
+      el.innerHTML = `
+        <div class="top-tips">
+          <h2>Deine Top ${top3.length} Empfehlungen</h2>
+          <div class="tips-grid">
+            ${top3.map((tip, i) => `
+              <div class="tip-card">
+                <div class="tip-header">
+                  <span class="tip-number">${i + 1}</span>
+                  <span class="tip-title">${tip.title}</span>
+                </div>
+                <span class="tip-marker tip-marker-${tip.marker}">${tip.marker === 'red' ? 'Kritisch' : 'Auffällig'}</span>
+                <div class="tip-status">${tip.status}</div>
+                <div class="tip-action">${tip.action}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     // ===== RENDER =====
     function renderResults(data) {
       const [meta, markers, fattyAcids, fatCategories] = data;
@@ -1278,6 +1500,7 @@
       const aaValue = aaFattyAcid ? parseFloat(aaFattyAcid.Value) : null;
 
       renderAnalysisText(markers, meta, aaValue);
+      renderTopTips(markers, fattyAcids, meta, aaValue);
       renderPersonInfo(meta);
       renderZinzinoSummary(markers, aaValue);
       renderDetailMarkers(markers, aaValue);
