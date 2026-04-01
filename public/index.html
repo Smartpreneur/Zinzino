@@ -2966,10 +2966,17 @@
 
     function parseDateForSort(str) {
       if (!str) return '';
-      // Handle DD.MM.YYYY format from API
+      // Handle DD.MM.YY or DD.MM.YYYY format
       const m = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
-      if (m) return `${m[3].padStart(4,'20')}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-      return str; // Already YYYY-MM-DD
+      if (m) {
+        let year = m[3];
+        if (year.length === 2) year = '20' + year;
+        return `${year}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+      }
+      // Already YYYY-MM-DD — validate it's not corrupted
+      const iso = str.match(/^(\d{4,})-(\d{2})-(\d{2})$/);
+      if (iso && iso[1].length > 4) return iso[1].slice(-4) + '-' + iso[2] + '-' + iso[3];
+      return str;
     }
 
     function fmtDate(dateStr) {
@@ -3147,7 +3154,9 @@
       if (td.querySelector('.cell-editor')) return;
       const c = contactsCache.find(c => c.id === id);
       if (!c) return;
-      const val = c[field] || '';
+      let val = c[field] || '';
+      // Ensure date fields are in YYYY-MM-DD for the date input
+      if (type === 'date' && val) val = parseDateForSort(val);
       const input = document.createElement('input');
       input.className = 'cell-editor';
       input.type = type;
