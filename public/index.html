@@ -1022,6 +1022,7 @@
       .branding-avatar { width: 22px; height: 22px; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -2270,7 +2271,7 @@
         document.getElementById('agentChat').style.display = 'flex';
         // Kontakte tab
         document.getElementById('tabKontakte').style.display = '';
-        renderContacts();
+        loadContacts();
         updateOpeners('test');
         updateOpeners('agent');
       } else {
@@ -2735,30 +2736,40 @@
       renderFAQ(term);
     }
 
-    // ===== CONTACTS =====
-    function getContacts() {
-      try { return JSON.parse(localStorage.getItem('zinzino_contacts') || '[]'); }
-      catch { return []; }
-    }
-    function saveContacts(contacts) {
-      localStorage.setItem('zinzino_contacts', JSON.stringify(contacts));
+    // ===== SUPABASE CONTACTS =====
+    const SUPABASE_URL = 'https://fnehgaymdwwqdnvzbyir.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZWhnYXltZHd3cWRudnpieWlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NzE3MTUsImV4cCI6MjA4OTA0NzcxNX0.ukHL_9SqaUJhoILPadBaomaMPdQtihsXdWoQDRVpGXI';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let contactsCache = [];
+
+    async function loadContacts() {
+      const { data, error } = await sb.from('zinzino_contacts').select('*').order('created_at', { ascending: false });
+      if (error) { console.error('Supabase load error:', error); return; }
+      contactsCache = data.map(r => ({
+        id: r.id, name: r.name || '', type: r.type || '', rating: r.rating || '',
+        birthday: r.birthday || '', city: r.city || '', source: r.source || '',
+        background: r.background || '', notes: r.notes || '', followup: r.followup || '',
+        testId: r.test_id || ''
+      }));
+      renderContacts();
     }
 
     function addContact() {
       openContactModal(null);
     }
 
-    function deleteContact(id) {
+    async function deleteContact(id) {
       if (!confirm('Kontakt wirklich löschen?')) return;
-      const contacts = getContacts().filter(c => c.id !== id);
-      saveContacts(contacts);
-      renderContacts();
+      await sb.from('zinzino_contacts').delete().eq('id', id);
+      await loadContacts();
     }
 
-    function updateContact(id, field, value) {
-      const contacts = getContacts();
-      const c = contacts.find(c => c.id === id);
-      if (c) { c[field] = value; saveContacts(contacts); }
+    async function updateContact(id, field, value) {
+      const dbField = field === 'testId' ? 'test_id' : field;
+      await sb.from('zinzino_contacts').update({ [dbField]: value, updated_at: new Date().toISOString() }).eq('id', id);
+      const c = contactsCache.find(c => c.id === id);
+      if (c) c[field] = value;
     }
 
     function openTestFromContact(testId) {
@@ -2771,17 +2782,16 @@
     function renderContacts() {
       const tbody = document.getElementById('contactsBody');
       if (!tbody) return;
-      const contacts = getContacts();
       const search = (document.getElementById('contactSearch')?.value || '').toLowerCase();
 
       const filtered = search
-        ? contacts.filter(c => Object.values(c).join(' ').toLowerCase().includes(search))
-        : contacts;
+        ? contactsCache.filter(c => Object.values(c).join(' ').toLowerCase().includes(search))
+        : contactsCache;
 
       document.getElementById('contactCount').textContent = `${filtered.length} Kontakt${filtered.length !== 1 ? 'e' : ''}`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#888">${contacts.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#888">${contactsCache.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
         return;
       }
 
@@ -2847,7 +2857,7 @@
       document.getElementById('contactModal').classList.remove('open');
     }
 
-    function saveContactModal() {
+    async function saveContactModal() {
       const idVal = document.getElementById('cmId').value;
       const contactData = {
         name: document.getElementById('cmName').value,
@@ -2859,23 +2869,21 @@
         followup: document.getElementById('cmFollowup').value,
         background: document.getElementById('cmBackground').value,
         notes: document.getElementById('cmNotes').value,
-        testId: document.getElementById('cmTestId').value
+        test_id: document.getElementById('cmTestId').value
       };
 
-      const contacts = getContacts();
       if (idVal) {
-        const c = contacts.find(c => c.id === parseInt(idVal));
-        if (c) Object.assign(c, contactData);
+        contactData.updated_at = new Date().toISOString();
+        await sb.from('zinzino_contacts').update(contactData).eq('id', parseInt(idVal));
       } else {
-        contacts.unshift({ id: Date.now(), ...contactData });
+        await sb.from('zinzino_contacts').insert(contactData);
       }
-      saveContacts(contacts);
       closeContactModal();
-      renderContacts();
+      await loadContacts();
     }
 
-    function editContact(id) {
-      const contact = getContacts().find(c => c.id === id);
+    async function editContact(id) {
+      const contact = contactsCache.find(c => c.id === id);
       if (contact) openContactModal(contact);
     }
 
@@ -2885,15 +2893,6 @@
     });
 
     function filterContacts() { renderContacts(); }
-
-    // Seed example contacts if empty
-    if (!localStorage.getItem('zinzino_contacts')) {
-      saveContacts([
-        { id: 1, name: 'Maria Meier', type: 'Interessent', rating: '4 Sterne', birthday: '', city: '', source: 'Instagram', background: 'ist schwanger, will gern natürlich unterstützen, immer viel müde', notes: 'möchte den Test machen', followup: '', testId: '' },
-        { id: 2, name: 'Claus Clausi', type: 'Partner', rating: '5 Sterne', birthday: '', city: '', source: 'Whatsapp', background: 'möchte sein Haus schneller abbezahlen, persönlich noch unzufrieden mit Gewicht und Energie', notes: 'nach 3 FUs zugesagt', followup: '', testId: '' },
-        { id: 3, name: 'Hans Hinterwald', type: 'Kunde', rating: '1 Stern', birthday: '', city: '', source: 'Instagram', background: 'Schuppenflechte und Hautekzeme', notes: 'wollte gern Test machen, Frau hat nein gesagt', followup: '', testId: '' }
-      ]);
-    }
 
     // Initialize on page load
     checkLoginState();
