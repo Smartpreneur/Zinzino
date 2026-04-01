@@ -2838,7 +2838,7 @@
         id: r.id, name: r.name || '', type: r.type || '', rating: r.rating || '',
         birthday: r.birthday || '', city: r.city || '', source: r.source || '',
         background: r.background || '', notes: r.notes || '', followup: r.followup || '',
-        testId: r.test_id || '', testStatus: r.test_status || '', testDate: r.test_date || ''
+        testId: r.test_id || '', testStatus: r.test_status || '', testDate: r.test_date || '', testSummary: r.test_summary || ''
       }));
       renderContacts();
       checkAllTestStatuses();
@@ -2862,7 +2862,7 @@
     }
 
     async function checkAllTestStatuses() {
-      const toCheck = contactsCache.filter(c => c.testId && (c.testStatus !== 'ready' || !c.testDate));
+      const toCheck = contactsCache.filter(c => c.testId && (c.testStatus !== 'ready' || !c.testDate || !c.testSummary));
       let changed = false;
       for (const c of toCheck) {
         try {
@@ -2874,11 +2874,25 @@
           if (!resp.ok) continue;
           const data = await resp.json();
           const meta = data && data[0];
+          const markers = data && data[1];
           const status = (meta && meta.APIRESULT === 'READY') ? 'ready' : 'pending';
           const testDate = (meta && meta.Date) ? meta.Date : '';
+          // Build summary from markers (exclude Omega-6 Ratio Level which has no color)
+          let testSummary = '';
+          if (Array.isArray(markers)) {
+            const validMarkers = markers.filter(m => m.Color === 'red' || m.Color === 'yellow' || m.Color === 'green');
+            const reds = validMarkers.filter(m => m.Color === 'red').length;
+            const yellows = validMarkers.filter(m => m.Color === 'yellow').length;
+            const greens = validMarkers.filter(m => m.Color === 'green').length;
+            const total = reds + yellows + greens;
+            testSummary = `${greens}/${total} im Ziel`;
+            if (reds > 0) testSummary += ` · ${reds} krit.`;
+            if (yellows > 0) testSummary += ` · ${yellows} auff.`;
+          }
           const updates = {};
           if (status !== c.testStatus) { c.testStatus = status; updates.test_status = status; }
           if (testDate && testDate !== c.testDate) { c.testDate = testDate; updates.test_date = testDate; }
+          if (testSummary && testSummary !== c.testSummary) { c.testSummary = testSummary; updates.test_summary = testSummary; }
           if (Object.keys(updates).length) {
             await sb.from('zinzino_contacts').update(updates).eq('id', c.id);
             changed = true;
@@ -2947,7 +2961,7 @@
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'notes','text')" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${fmtDate(c.followup)}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>${testStatusIcon(c)}` : ''}</td>
-          <td>${c.testDate ? fmtDate(parseDateForSort(c.testDate)) : ''}</td>
+          <td>${c.testDate || c.testSummary ? `${c.testDate ? fmtDate(parseDateForSort(c.testDate)) : ''}${c.testSummary ? `<br><span style="font-size:11px;color:#666">${esc(c.testSummary)}</span>` : ''}` : ''}</td>
           <td class="contacts-actions">
             <button class="btn-delete" onclick="deleteContact(${c.id})" title="L\u00f6schen">&#10005;</button>
           </td>
