@@ -1357,7 +1357,7 @@
     function renderTopTips(markers, fattyAcids, meta, aaValue) {
       const el = document.getElementById('topTips');
       const isChild = meta && parseInt(meta.Age) < 18;
-      const weight = meta ? parseFloat(meta.Weight) || 70 : 70;
+      const weight = meta ? parseFloat(meta.weight_exact) || 70 : 70;
 
       const ratio = markers.find(m => m.Fieldname.includes('Balance'));
       const protection = markers.find(m => m.Fieldname.includes('Protection'));
