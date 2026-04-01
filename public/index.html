@@ -941,6 +941,28 @@
     .sortable-th { cursor: pointer; user-select: none; }
     .sortable-th:hover { color: #4a6cf7; }
     .sort-arrow { font-size: 10px; color: #4a6cf7; }
+    .type-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+    }
+    .type-kunde { background: #dcfce7; color: #166534; }
+    .type-partner { background: #dbeafe; color: #1e40af; }
+    .type-interessent { background: #fef9c3; color: #854d0e; }
+    .type-kontakt { background: #f3f4f6; color: #4b5563; }
+    .stars { color: #f59e0b; letter-spacing: 1px; font-size: 14px; white-space: nowrap; }
+    .stars-empty { color: #e5e7eb; }
+    .rating-filter-wrap { position: relative; display: inline-block; }
+    .rating-filter-menu {
+      display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
+      background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 8px 0; z-index: 100; min-width: 160px;
+    }
+    .rating-filter-menu.open { display: block; }
+    .rating-filter-menu label {
+      display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+      font-size: 13px; cursor: pointer; white-space: nowrap;
+    }
+    .rating-filter-menu label:hover { background: #f8f9fb; }
     .cell-editable { cursor: pointer; min-height: 24px; padding: 2px 0; }
     .cell-editable:hover { background: #f0f4ff; border-radius: 4px; }
     .cell-editor { width: 100%; padding: 4px 6px; border: 1px solid #4a6cf7; border-radius: 4px; font-size: 13px; font-family: inherit; outline: none; background: white; box-shadow: 0 0 0 3px rgba(74,108,247,0.08); }
@@ -1112,7 +1134,17 @@
         <button class="contact-filter-btn" onclick="setContactFilter('Interessent')">Interessenten</button>
         <button class="contact-filter-btn" onclick="setContactFilter('Kontakt')">Kontakte</button>
         <span style="flex:1"></span>
-        <button class="contact-filter-btn" id="btnSortFollowup" onclick="sortContacts('followup')" title="Nach Follow-Up sortieren">&#8645; Follow-Up</button>
+        <div class="rating-filter-wrap">
+          <button class="contact-filter-btn" id="btnRatingFilter" onclick="toggleRatingFilter()">&#11088; Rating</button>
+          <div class="rating-filter-menu" id="ratingFilterMenu">
+            <label><input type="checkbox" value="5 Sterne" onchange="applyRatingFilter()" checked> &#11088;&#11088;&#11088;&#11088;&#11088;</label>
+            <label><input type="checkbox" value="4 Sterne" onchange="applyRatingFilter()" checked> &#11088;&#11088;&#11088;&#11088;</label>
+            <label><input type="checkbox" value="3 Sterne" onchange="applyRatingFilter()" checked> &#11088;&#11088;&#11088;</label>
+            <label><input type="checkbox" value="2 Sterne" onchange="applyRatingFilter()" checked> &#11088;&#11088;</label>
+            <label><input type="checkbox" value="1 Stern" onchange="applyRatingFilter()" checked> &#11088;</label>
+            <label><input type="checkbox" value="" onchange="applyRatingFilter()" checked> Ohne Rating</label>
+          </div>
+        </div>
       </div>
       <div class="contacts-toolbar">
         <input type="text" id="contactSearch" placeholder="Kontakte durchsuchen..." oninput="filterContacts()" />
@@ -2815,6 +2847,51 @@
       sortContacts('followup');
     }
 
+    let ratingFilterValues = null; // null = all selected
+
+    function toggleRatingFilter() {
+      document.getElementById('ratingFilterMenu').classList.toggle('open');
+    }
+    // Close rating menu on outside click
+    document.addEventListener('click', function(e) {
+      const wrap = document.querySelector('.rating-filter-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('ratingFilterMenu').classList.remove('open');
+      }
+    });
+
+    function applyRatingFilter() {
+      const checks = document.querySelectorAll('#ratingFilterMenu input[type=checkbox]');
+      const allChecked = Array.from(checks).every(c => c.checked);
+      if (allChecked) {
+        ratingFilterValues = null;
+        document.getElementById('btnRatingFilter').classList.remove('active');
+      } else {
+        ratingFilterValues = Array.from(checks).filter(c => c.checked).map(c => c.value);
+        document.getElementById('btnRatingFilter').classList.add('active');
+      }
+      renderContacts();
+    }
+
+    function renderTypeBadge(type) {
+      if (!type) return '';
+      const cls = type === 'Kunde' ? 'type-kunde' : type === 'Partner' ? 'type-partner' : type === 'Interessent' ? 'type-interessent' : 'type-kontakt';
+      return `<span class="type-badge ${cls}">${esc(type)}</span>`;
+    }
+
+    function renderStars(rating) {
+      if (!rating) return '';
+      const m = rating.match(/(\d)/);
+      if (!m) return esc(rating);
+      const n = parseInt(m[1]);
+      let html = '<span class="stars">';
+      for (let i = 1; i <= 5; i++) {
+        html += i <= n ? '&#11088;' : '<span class="stars-empty">&#9734;</span>';
+      }
+      html += '</span>';
+      return html;
+    }
+
     function parseDateForSort(str) {
       if (!str) return '';
       // Handle DD.MM.YYYY format from API
@@ -2943,6 +3020,9 @@
       if (contactTypeFilter !== 'alle') {
         filtered = filtered.filter(c => c.type === contactTypeFilter);
       }
+      if (ratingFilterValues !== null) {
+        filtered = filtered.filter(c => ratingFilterValues.includes(c.rating));
+      }
       if (search) {
         filtered = filtered.filter(c => Object.values(c).join(' ').toLowerCase().includes(search));
       }
@@ -2971,8 +3051,8 @@
         <tr>
           <td><button class="contact-detail-btn" onclick="editContact(${c.id})" title="Details \u00f6ffnen">&#9998;</button></td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'name','text')">${esc(c.name) || '<span style="color:#ccc">\u2013</span>'}</td>
-          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'type',['Interessent','Kunde','Partner','Kontakt'])">${esc(c.type) || ''}</td>
-          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'rating',['1 Stern','2 Sterne','3 Sterne','4 Sterne','5 Sterne'])">${esc(c.rating) || ''}</td>
+          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'type',['Interessent','Kunde','Partner','Kontakt'])">${renderTypeBadge(c.type)}</td>
+          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'rating',['1 Stern','2 Sterne','3 Sterne','4 Sterne','5 Sterne'])">${renderStars(c.rating)}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'birthday','date')">${fmtDate(c.birthday)}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'city','text')">${esc(c.city) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'source','text')">${esc(c.source) || ''}</td>
