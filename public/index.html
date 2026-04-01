@@ -2877,13 +2877,37 @@
           const markers = data && data[1];
           const status = (meta && meta.APIRESULT === 'READY') ? 'ready' : 'pending';
           const testDate = (meta && meta.Date) ? meta.Date : '';
-          // Build summary from markers (exclude Omega-6 Ratio Level which has no color)
+          // Build summary from the 5 main markers + AA-Index (6 total)
           let testSummary = '';
+          const mainFields = [
+            'Omega-6 (AA)/Omega-3 (EPA) Balance',
+            'Your Protection (Fatty Acids Profile Value)',
+            'Omega-3 (EPA+DHA) Level',
+            'Mental Strength Index',
+            'Cell Membrane Fluidity Index'
+          ];
           if (Array.isArray(markers)) {
-            const validMarkers = markers.filter(m => m.Color === 'red' || m.Color === 'yellow' || m.Color === 'green');
-            const reds = validMarkers.filter(m => m.Color === 'red').length;
-            const yellows = validMarkers.filter(m => m.Color === 'yellow').length;
-            const greens = validMarkers.filter(m => m.Color === 'green').length;
+            const mainMarkers = markers.filter(m => mainFields.includes(m.Fieldname));
+            // AA-Index from fatty acids (data[2])
+            const fattyAcids = data && data[2];
+            let aaColor = null;
+            if (Array.isArray(fattyAcids)) {
+              const aa = fattyAcids.find(f => f.Fieldname === 'AA');
+              if (aa) {
+                const aaVal = parseFloat(aa.Value);
+                const isChild = meta && parseInt(meta.Age) < 18;
+                if (isChild) {
+                  aaColor = (aaVal >= 7 && aaVal <= 10) ? 'green' : ((aaVal >= 5 && aaVal < 7) || (aaVal > 10 && aaVal <= 12.5)) ? 'yellow' : 'red';
+                } else {
+                  aaColor = (aaVal >= 6.5 && aaVal <= 9.5) ? 'green' : ((aaVal >= 4.5 && aaVal < 6.5) || (aaVal > 9.5 && aaVal <= 12.5)) ? 'yellow' : 'red';
+                }
+              }
+            }
+            const allColors = mainMarkers.map(m => m.Color);
+            if (aaColor) allColors.push(aaColor);
+            const reds = allColors.filter(c => c === 'red').length;
+            const yellows = allColors.filter(c => c === 'yellow').length;
+            const greens = allColors.filter(c => c === 'green').length;
             const total = reds + yellows + greens;
             testSummary = `${greens}/${total} im Ziel`;
             if (reds > 0) testSummary += ` · ${reds} krit.`;
