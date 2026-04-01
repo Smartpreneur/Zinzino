@@ -938,6 +938,9 @@
     }
     .contacts-table th .col-resize:hover,
     .contacts-table th .col-resize.active { background: rgba(74,108,247,0.3); }
+    .sortable-th { cursor: pointer; user-select: none; }
+    .sortable-th:hover { color: #4a6cf7; }
+    .sort-arrow { font-size: 10px; color: #4a6cf7; }
     .cell-editable { cursor: pointer; min-height: 24px; padding: 2px 0; }
     .cell-editable:hover { background: #f0f4ff; border-radius: 4px; }
     .cell-editor { width: 100%; padding: 4px 6px; border: 1px solid #4a6cf7; border-radius: 4px; font-size: 13px; font-family: inherit; outline: none; background: white; box-shadow: 0 0 0 3px rgba(74,108,247,0.08); }
@@ -1109,7 +1112,7 @@
         <button class="contact-filter-btn" onclick="setContactFilter('Interessent')">Interessenten</button>
         <button class="contact-filter-btn" onclick="setContactFilter('Kontakt')">Kontakte</button>
         <span style="flex:1"></span>
-        <button class="contact-filter-btn" id="btnSortFollowup" onclick="toggleFollowupSort()" title="Nach Follow-Up sortieren">&#8645; Follow-Up</button>
+        <button class="contact-filter-btn" id="btnSortFollowup" onclick="sortContacts('followup')" title="Nach Follow-Up sortieren">&#8645; Follow-Up</button>
       </div>
       <div class="contacts-toolbar">
         <input type="text" id="contactSearch" placeholder="Kontakte durchsuchen..." oninput="filterContacts()" />
@@ -1121,16 +1124,17 @@
           <thead>
             <tr>
               <th style="width:36px"></th>
-              <th>Vor- und Nachname</th>
-              <th>Typ</th>
-              <th>Rating</th>
-              <th>Geb.</th>
-              <th>Stadt</th>
-              <th>Quelle</th>
-              <th>Hintergrund & WARUM</th>
+              <th class="sortable-th" onclick="sortContacts('name')">Name <span class="sort-arrow" id="sort-name"></span></th>
+              <th class="sortable-th" onclick="sortContacts('type')">Typ <span class="sort-arrow" id="sort-type"></span></th>
+              <th class="sortable-th" onclick="sortContacts('rating')">Rating <span class="sort-arrow" id="sort-rating"></span></th>
+              <th class="sortable-th" onclick="sortContacts('birthday')">Geb. <span class="sort-arrow" id="sort-birthday"></span></th>
+              <th class="sortable-th" onclick="sortContacts('city')">Stadt <span class="sort-arrow" id="sort-city"></span></th>
+              <th class="sortable-th" onclick="sortContacts('source')">Quelle <span class="sort-arrow" id="sort-source"></span></th>
+              <th>Hintergrund</th>
               <th>Notizen</th>
-              <th>Follow-Up</th>
+              <th class="sortable-th" onclick="sortContacts('followup')">Follow-Up <span class="sort-arrow" id="sort-followup"></span></th>
               <th>Test-ID</th>
+              <th class="sortable-th" onclick="sortContacts('testDate')">Auswertung <span class="sort-arrow" id="sort-testDate"></span></th>
               <th></th>
             </tr>
           </thead>
@@ -2776,7 +2780,8 @@
 
     let contactsCache = [];
     let contactTypeFilter = 'alle';
-    let contactSortFollowup = 0; // 0=off, 1=asc, 2=desc
+    let contactSortField = '';
+    let contactSortDir = 0; // 0=off, 1=asc, 2=desc
 
     function setContactFilter(type) {
       contactTypeFilter = type;
@@ -2787,12 +2792,33 @@
       renderContacts();
     }
 
-    function toggleFollowupSort() {
-      contactSortFollowup = (contactSortFollowup + 1) % 3;
-      const btn = document.getElementById('btnSortFollowup');
-      btn.classList.toggle('active', contactSortFollowup > 0);
-      btn.textContent = contactSortFollowup === 1 ? '↑ Follow-Up' : contactSortFollowup === 2 ? '↓ Follow-Up' : '↕ Follow-Up';
+    function sortContacts(field) {
+      if (contactSortField === field) {
+        contactSortDir = (contactSortDir + 1) % 3;
+        if (contactSortDir === 0) contactSortField = '';
+      } else {
+        contactSortField = field;
+        contactSortDir = 1;
+      }
+      // Update all sort arrows
+      document.querySelectorAll('.sort-arrow').forEach(el => el.textContent = '');
+      if (contactSortDir > 0) {
+        const arrow = document.getElementById('sort-' + field);
+        if (arrow) arrow.textContent = contactSortDir === 1 ? ' ▲' : ' ▼';
+      }
       renderContacts();
+    }
+
+    function toggleFollowupSort() {
+      sortContacts('followup');
+    }
+
+    function parseDateForSort(str) {
+      if (!str) return '';
+      // Handle DD.MM.YYYY format from API
+      const m = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+      if (m) return `${m[3].padStart(4,'20')}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+      return str; // Already YYYY-MM-DD
     }
 
     function fmtDate(dateStr) {
@@ -2812,7 +2838,7 @@
         id: r.id, name: r.name || '', type: r.type || '', rating: r.rating || '',
         birthday: r.birthday || '', city: r.city || '', source: r.source || '',
         background: r.background || '', notes: r.notes || '', followup: r.followup || '',
-        testId: r.test_id || '', testStatus: r.test_status || ''
+        testId: r.test_id || '', testStatus: r.test_status || '', testDate: r.test_date || ''
       }));
       renderContacts();
       checkAllTestStatuses();
@@ -2837,6 +2863,7 @@
 
     async function checkAllTestStatuses() {
       const toCheck = contactsCache.filter(c => c.testId && c.testStatus !== 'ready');
+      let changed = false;
       for (const c of toCheck) {
         try {
           const resp = await fetch('/api/check-test', {
@@ -2846,14 +2873,19 @@
           });
           if (!resp.ok) continue;
           const data = await resp.json();
-          const status = (data && data[0] && data[0].APIRESULT === 'READY') ? 'ready' : 'pending';
-          if (status !== c.testStatus) {
-            c.testStatus = status;
-            await sb.from('zinzino_contacts').update({ test_status: status }).eq('id', c.id);
+          const meta = data && data[0];
+          const status = (meta && meta.APIRESULT === 'READY') ? 'ready' : 'pending';
+          const testDate = (meta && meta.Date) ? meta.Date : '';
+          const updates = {};
+          if (status !== c.testStatus) { c.testStatus = status; updates.test_status = status; }
+          if (testDate && testDate !== c.testDate) { c.testDate = testDate; updates.test_date = testDate; }
+          if (Object.keys(updates).length) {
+            await sb.from('zinzino_contacts').update(updates).eq('id', c.id);
+            changed = true;
           }
         } catch {}
       }
-      renderContacts();
+      if (changed) renderContacts();
     }
 
     function testStatusIcon(c) {
@@ -2881,20 +2913,24 @@
       if (search) {
         filtered = filtered.filter(c => Object.values(c).join(' ').toLowerCase().includes(search));
       }
-      if (contactSortFollowup > 0) {
+      if (contactSortField && contactSortDir > 0) {
         filtered = [...filtered].sort((a, b) => {
-          const da = a.followup || '', db = b.followup || '';
-          if (!da && !db) return 0;
-          if (!da) return 1;
-          if (!db) return -1;
-          return contactSortFollowup === 1 ? da.localeCompare(db) : db.localeCompare(da);
+          let va = a[contactSortField] || '', vb = b[contactSortField] || '';
+          // Parse dates for proper sorting
+          if (['followup', 'birthday', 'testDate'].includes(contactSortField)) {
+            va = parseDateForSort(va); vb = parseDateForSort(vb);
+          }
+          if (!va && !vb) return 0;
+          if (!va) return 1;
+          if (!vb) return -1;
+          return contactSortDir === 1 ? va.localeCompare(vb) : vb.localeCompare(va);
         });
       }
 
       document.getElementById('contactCount').textContent = `${filtered.length} Kontakt${filtered.length !== 1 ? 'e' : ''}`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:#888">${contactsCache.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:#888">${contactsCache.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
         return;
       }
 
@@ -2911,6 +2947,7 @@
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'notes','text')" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${fmtDate(c.followup)}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>${testStatusIcon(c)}` : ''}</td>
+          <td>${c.testDate ? fmtDate(parseDateForSort(c.testDate)) : ''}</td>
           <td class="contacts-actions">
             <button class="btn-delete" onclick="deleteContact(${c.id})" title="L\u00f6schen">&#10005;</button>
           </td>
