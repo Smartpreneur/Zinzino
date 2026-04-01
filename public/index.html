@@ -2812,9 +2812,10 @@
         id: r.id, name: r.name || '', type: r.type || '', rating: r.rating || '',
         birthday: r.birthday || '', city: r.city || '', source: r.source || '',
         background: r.background || '', notes: r.notes || '', followup: r.followup || '',
-        testId: r.test_id || ''
+        testId: r.test_id || '', testStatus: r.test_status || ''
       }));
       renderContacts();
+      checkAllTestStatuses();
     }
 
     function addContact() {
@@ -2832,6 +2833,33 @@
       await sb.from('zinzino_contacts').update({ [dbField]: value, updated_at: new Date().toISOString() }).eq('id', id);
       const c = contactsCache.find(c => c.id === id);
       if (c) c[field] = value;
+    }
+
+    async function checkAllTestStatuses() {
+      const toCheck = contactsCache.filter(c => c.testId && c.testStatus !== 'ready');
+      for (const c of toCheck) {
+        try {
+          const resp = await fetch('/api/check-test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ testId: c.testId })
+          });
+          if (!resp.ok) continue;
+          const data = await resp.json();
+          const status = (data && data[0] && data[0].APIRESULT === 'READY') ? 'ready' : 'pending';
+          if (status !== c.testStatus) {
+            c.testStatus = status;
+            await sb.from('zinzino_contacts').update({ test_status: status }).eq('id', c.id);
+          }
+        } catch {}
+      }
+      renderContacts();
+    }
+
+    function testStatusIcon(c) {
+      if (!c.testId) return '';
+      if (c.testStatus === 'ready') return '<span title="Ergebnis verf\u00fcgbar" style="color:#22c55e;font-size:15px;margin-left:4px">&#10003;</span>';
+      return '<span title="Ergebnis ausstehend" style="color:#d0d5dd;font-size:13px;margin-left:4px">&#9203;</span>';
     }
 
     function openTestFromContact(testId) {
@@ -2882,7 +2910,7 @@
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'background','text')" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.background)}">${esc(c.background) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'notes','text')" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${fmtDate(c.followup)}</td>
-          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>` : ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>${testStatusIcon(c)}` : ''}</td>
           <td class="contacts-actions">
             <button class="btn-delete" onclick="deleteContact(${c.id})" title="L\u00f6schen">&#10005;</button>
           </td>
