@@ -919,9 +919,7 @@
     .btn-delete { background: #fef2f2; color: #dc2626; }
     .btn-delete:hover { background: #fee2e2; }
     .contact-count { font-size: 13px; color: #888; }
-    .contacts-filter-bar {
-      display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
-    }
+    /* filter bar defined below with editable cells */
     .contact-filter-btn {
       padding: 6px 16px; border: 1px solid #d0d5dd; border-radius: 20px;
       background: white; font-size: 13px; cursor: pointer; color: #555;
@@ -939,6 +937,10 @@
       cursor: col-resize; background: transparent;
     }
     .contacts-table th .col-resize:hover { background: #4a6cf7; opacity: 0.3; }
+    .cell-editable { cursor: pointer; min-height: 24px; padding: 2px 0; }
+    .cell-editable:hover { background: #f0f4ff; border-radius: 4px; }
+    .cell-editor { width: 100%; padding: 4px 6px; border: 1px solid #4a6cf7; border-radius: 4px; font-size: 13px; font-family: inherit; outline: none; background: white; box-shadow: 0 0 0 3px rgba(74,108,247,0.08); }
+    .contacts-filter-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
 
     /* Contact Modal */
     .contact-modal-overlay {
@@ -1105,6 +1107,8 @@
         <button class="contact-filter-btn" onclick="setContactFilter('Partner')">Partner</button>
         <button class="contact-filter-btn" onclick="setContactFilter('Interessent')">Interessenten</button>
         <button class="contact-filter-btn" onclick="setContactFilter('Kontakt')">Kontakte</button>
+        <span style="flex:1"></span>
+        <button class="contact-filter-btn" id="btnSortFollowup" onclick="toggleFollowupSort()" title="Nach Follow-Up sortieren">&#8645; Follow-Up</button>
       </div>
       <div class="contacts-toolbar">
         <input type="text" id="contactSearch" placeholder="Kontakte durchsuchen..." oninput="filterContacts()" />
@@ -2771,12 +2775,22 @@
 
     let contactsCache = [];
     let contactTypeFilter = 'alle';
+    let contactSortFollowup = 0; // 0=off, 1=asc, 2=desc
 
     function setContactFilter(type) {
       contactTypeFilter = type;
-      document.querySelectorAll('.contact-filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.trim() === (type === 'alle' ? 'Alle' : type === 'Kunde' ? 'Kunden' : type === 'Partner' ? 'Partner' : type === 'Interessent' ? 'Interessenten' : 'Kontakte'));
+      const labels = { 'alle': 'Alle', 'Kunde': 'Kunden', 'Partner': 'Partner', 'Interessent': 'Interessenten', 'Kontakt': 'Kontakte' };
+      document.querySelectorAll('#contactFilterBar .contact-filter-btn:not(#btnSortFollowup)').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === labels[type]);
       });
+      renderContacts();
+    }
+
+    function toggleFollowupSort() {
+      contactSortFollowup = (contactSortFollowup + 1) % 3;
+      const btn = document.getElementById('btnSortFollowup');
+      btn.classList.toggle('active', contactSortFollowup > 0);
+      btn.textContent = contactSortFollowup === 1 ? '↑ Follow-Up' : contactSortFollowup === 2 ? '↓ Follow-Up' : '↕ Follow-Up';
       renderContacts();
     }
 
@@ -2838,6 +2852,15 @@
       if (search) {
         filtered = filtered.filter(c => Object.values(c).join(' ').toLowerCase().includes(search));
       }
+      if (contactSortFollowup > 0) {
+        filtered = [...filtered].sort((a, b) => {
+          const da = a.followup || '', db = b.followup || '';
+          if (!da && !db) return 0;
+          if (!da) return 1;
+          if (!db) return -1;
+          return contactSortFollowup === 1 ? da.localeCompare(db) : db.localeCompare(da);
+        });
+      }
 
       document.getElementById('contactCount').textContent = `${filtered.length} Kontakt${filtered.length !== 1 ? 'e' : ''}`;
 
@@ -2849,21 +2872,60 @@
       tbody.innerHTML = filtered.map(c => `
         <tr>
           <td><button class="contact-detail-btn" onclick="editContact(${c.id})" title="Details \u00f6ffnen">&#9998;</button></td>
-          <td>${esc(c.name) || '<span style="color:#ccc">–</span>'}</td>
-          <td>${esc(c.type) || ''}</td>
-          <td>${esc(c.rating) || ''}</td>
-          <td>${fmtDate(c.birthday)}</td>
-          <td>${esc(c.city) || ''}</td>
-          <td>${esc(c.source) || ''}</td>
-          <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.background)}">${esc(c.background) || ''}</td>
-          <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
-          <td>${fmtDate(c.followup)}</td>
-          <td>${c.testId ? `<button class="test-id-link" onclick="openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>` : '<span style="color:#ccc">–</span>'}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'name','text')">${esc(c.name) || '<span style="color:#ccc">\u2013</span>'}</td>
+          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'type',['Interessent','Kunde','Partner','Kontakt'])">${esc(c.type) || ''}</td>
+          <td class="cell-editable" onclick="inlineSelect(this,${c.id},'rating',['1 Stern','2 Sterne','3 Sterne','4 Sterne','5 Sterne'])">${esc(c.rating) || ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'birthday','date')">${fmtDate(c.birthday)}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'city','text')">${esc(c.city) || ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'source','text')">${esc(c.source) || ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'background','text')" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.background)}">${esc(c.background) || ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'notes','text')" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${fmtDate(c.followup)}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>` : ''}</td>
           <td class="contacts-actions">
             <button class="btn-delete" onclick="deleteContact(${c.id})" title="L\u00f6schen">&#10005;</button>
           </td>
         </tr>
       `).join('');
+    }
+
+    function inlineEdit(td, id, field, type) {
+      if (td.querySelector('.cell-editor')) return;
+      const c = contactsCache.find(c => c.id === id);
+      if (!c) return;
+      const val = c[field] || '';
+      const input = document.createElement('input');
+      input.className = 'cell-editor';
+      input.type = type;
+      input.value = val;
+      td.textContent = '';
+      td.appendChild(input);
+      input.focus();
+      const save = async () => {
+        await updateContact(id, field, input.value);
+        if (field === 'testId') { const cc = contactsCache.find(x => x.id === id); if(cc) cc.testId = input.value; }
+        renderContacts();
+      };
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); } if (e.key === 'Escape') { renderContacts(); } });
+    }
+
+    function inlineSelect(td, id, field, options) {
+      if (td.querySelector('.cell-editor')) return;
+      const c = contactsCache.find(c => c.id === id);
+      if (!c) return;
+      const sel = document.createElement('select');
+      sel.className = 'cell-editor';
+      sel.innerHTML = '<option value="">–</option>' + options.map(o => `<option value="${o}" ${c[field]===o?'selected':''}>${o}</option>`).join('');
+      td.textContent = '';
+      td.appendChild(sel);
+      sel.focus();
+      const save = async () => {
+        await updateContact(id, field, sel.value);
+        renderContacts();
+      };
+      sel.addEventListener('change', save);
+      sel.addEventListener('blur', save);
     }
 
     function esc(str) {
