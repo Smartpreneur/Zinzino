@@ -1376,6 +1376,7 @@
           <div class="contact-field">
             <label>Follow-Up-Datum</label>
             <input type="date" id="cmFollowup" />
+            <div id="cmFollowupHint" style="font-size:12px;margin-top:4px"></div>
           </div>
           <div class="contact-field full-width">
             <label>Hintergrund & WARUM (Probleme / Ziele / Wünsche)</label>
@@ -3206,7 +3207,29 @@
       document.getElementById('cmBirthday').value = contact ? contact.birthday : '';
       document.getElementById('cmCity').value = contact ? contact.city : '';
       document.getElementById('cmSource').value = contact ? contact.source : '';
-      document.getElementById('cmFollowup').value = contact ? contact.followup : '';
+      const fuVal = contact ? parseDateForSort(contact.followup) : '';
+      document.getElementById('cmFollowup').value = fuVal;
+      const fuHint = document.getElementById('cmFollowupHint');
+      const fuInput = document.getElementById('cmFollowup');
+      if (fuVal) {
+        const fuDate = new Date(fuVal); fuDate.setHours(0,0,0,0);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diff = Math.round((fuDate - today) / 86400000);
+        if (diff < 0) {
+          fuHint.innerHTML = `<span style="color:#dc2626;font-weight:600">&#128308; Überfällig seit ${Math.abs(diff)} Tag(en)</span>`;
+          fuInput.style.borderColor = '#dc2626';
+          fuInput.style.background = '#fef2f2';
+        } else if (diff === 0) {
+          fuHint.innerHTML = `<span style="font-weight:600">Heute fällig</span>`;
+          fuInput.style.borderColor = ''; fuInput.style.background = '';
+        } else {
+          fuHint.innerHTML = `<span style="color:#666">In ${diff} Tag(en)</span>`;
+          fuInput.style.borderColor = ''; fuInput.style.background = '';
+        }
+      } else {
+        fuHint.innerHTML = '';
+        fuInput.style.borderColor = ''; fuInput.style.background = '';
+      }
       document.getElementById('cmBackground').value = contact ? contact.background : '';
       document.getElementById('cmNotes').value = contact ? contact.notes : '';
       document.getElementById('cmTestId').value = contact ? contact.testId : '';
