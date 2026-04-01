@@ -2862,7 +2862,7 @@
     }
 
     async function checkAllTestStatuses() {
-      const toCheck = contactsCache.filter(c => c.testId && c.testStatus !== 'ready');
+      const toCheck = contactsCache.filter(c => c.testId && (c.testStatus !== 'ready' || !c.testDate));
       let changed = false;
       for (const c of toCheck) {
         try {
