@@ -1145,6 +1145,19 @@
             <label><input type="checkbox" value="" onchange="applyRatingFilter()" checked> Ohne Rating</label>
           </div>
         </div>
+        <div class="rating-filter-wrap">
+          <button class="contact-filter-btn" id="btnFollowupFilter" onclick="toggleFollowupFilter()">&#128197; Follow-Up</button>
+          <div class="rating-filter-menu" id="followupFilterMenu">
+            <label class="followup-option" style="padding:8px 14px;font-weight:600;font-size:12px;color:#888;cursor:default">ZEITRAUM</label>
+            <label><input type="radio" name="followup" value="all" onchange="applyFollowupFilter()" checked> Alle anzeigen</label>
+            <label><input type="radio" name="followup" value="overdue" onchange="applyFollowupFilter()"> &#128308; Überfällig</label>
+            <label><input type="radio" name="followup" value="3" onchange="applyFollowupFilter()"> Nächste 3 Tage</label>
+            <label><input type="radio" name="followup" value="7" onchange="applyFollowupFilter()"> Nächste 7 Tage</label>
+            <label><input type="radio" name="followup" value="14" onchange="applyFollowupFilter()"> Nächste 14 Tage</label>
+            <label><input type="radio" name="followup" value="30" onchange="applyFollowupFilter()"> Nächste 30 Tage</label>
+            <label><input type="radio" name="followup" value="none" onchange="applyFollowupFilter()"> Ohne Follow-Up</label>
+          </div>
+        </div>
       </div>
       <div class="contacts-toolbar">
         <input type="text" id="contactSearch" placeholder="Kontakte durchsuchen..." oninput="filterContacts()" />
@@ -2852,12 +2865,13 @@
     function toggleRatingFilter() {
       document.getElementById('ratingFilterMenu').classList.toggle('open');
     }
-    // Close rating menu on outside click
+    // Close filter menus on outside click
     document.addEventListener('click', function(e) {
-      const wrap = document.querySelector('.rating-filter-wrap');
-      if (wrap && !wrap.contains(e.target)) {
-        document.getElementById('ratingFilterMenu').classList.remove('open');
-      }
+      document.querySelectorAll('.rating-filter-wrap').forEach(wrap => {
+        if (!wrap.contains(e.target)) {
+          wrap.querySelector('.rating-filter-menu')?.classList.remove('open');
+        }
+      });
     });
 
     function applyRatingFilter() {
@@ -2871,6 +2885,58 @@
         document.getElementById('btnRatingFilter').classList.add('active');
       }
       renderContacts();
+    }
+
+    let followupFilterMode = 'all';
+
+    function toggleFollowupFilter() {
+      document.getElementById('followupFilterMenu').classList.toggle('open');
+    }
+
+    function applyFollowupFilter() {
+      const checked = document.querySelector('#followupFilterMenu input[name=followup]:checked');
+      followupFilterMode = checked ? checked.value : 'all';
+      const btn = document.getElementById('btnFollowupFilter');
+      btn.classList.toggle('active', followupFilterMode !== 'all');
+      document.getElementById('followupFilterMenu').classList.remove('open');
+      // Auto-sort by follow-up ascending when filtering
+      if (followupFilterMode !== 'all' && followupFilterMode !== 'none') {
+        contactSortField = 'followup';
+        contactSortDir = 1;
+        document.querySelectorAll('.sort-arrow').forEach(el => el.textContent = '');
+        const arrow = document.getElementById('sort-followup');
+        if (arrow) arrow.textContent = ' ▲';
+      }
+      renderContacts();
+    }
+
+    function followupMatchesFilter(followup) {
+      if (followupFilterMode === 'all') return true;
+      if (followupFilterMode === 'none') return !followup;
+      if (!followup) return false;
+      const today = new Date(); today.setHours(0,0,0,0);
+      const fuStr = parseDateForSort(followup);
+      const fuDate = new Date(fuStr); fuDate.setHours(0,0,0,0);
+      if (isNaN(fuDate)) return false;
+      if (followupFilterMode === 'overdue') return fuDate < today;
+      const days = parseInt(followupFilterMode);
+      const limit = new Date(today); limit.setDate(limit.getDate() + days);
+      return fuDate >= today && fuDate <= limit;
+    }
+
+    function renderFollowup(followup) {
+      if (!followup) return '';
+      const fuStr = parseDateForSort(followup);
+      const fuDate = new Date(fuStr); fuDate.setHours(0,0,0,0);
+      if (isNaN(fuDate)) return fmtDate(followup);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const diff = Math.round((fuDate - today) / 86400000);
+      const dateStr = fmtDate(followup);
+      if (diff < 0) return `<span style="color:#dc2626;font-weight:600" title="Überfällig seit ${Math.abs(diff)} Tag(en)">${dateStr} &#128308;</span>`;
+      if (diff === 0) return `<span style="color:#ea580c;font-weight:600" title="Heute fällig">${dateStr} Heute</span>`;
+      if (diff === 1) return `<span style="color:#ea580c;font-weight:600" title="Morgen fällig">${dateStr} Morgen</span>`;
+      if (diff <= 3) return `<span style="color:#d97706" title="In ${diff} Tagen">${dateStr}</span>`;
+      return dateStr;
     }
 
     function renderTypeBadge(type) {
@@ -3023,6 +3089,9 @@
       if (ratingFilterValues !== null) {
         filtered = filtered.filter(c => ratingFilterValues.includes(c.rating));
       }
+      if (followupFilterMode !== 'all') {
+        filtered = filtered.filter(c => followupMatchesFilter(c.followup));
+      }
       if (search) {
         filtered = filtered.filter(c => Object.values(c).join(' ').toLowerCase().includes(search));
       }
@@ -3058,7 +3127,7 @@
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'source','text')">${esc(c.source) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'background','text')" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.background)}">${esc(c.background) || ''}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'notes','text')" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
-          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${fmtDate(c.followup)}</td>
+          <td class="cell-editable" onclick="inlineEdit(this,${c.id},'followup','date')">${renderFollowup(c.followup)}</td>
           <td class="cell-editable" onclick="inlineEdit(this,${c.id},'testId','text')">${c.testId ? `<button class="test-id-link" onclick="event.stopPropagation();openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>${testStatusIcon(c)}` : ''}</td>
           <td>${c.testDate || c.testSummary ? `${c.testDate ? fmtDate(parseDateForSort(c.testDate)) : ''}${c.testSummary ? `<br><span style="font-size:11px;color:#666">${esc(c.testSummary)}</span>` : ''}` : ''}</td>
           <td class="contacts-actions">
