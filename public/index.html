@@ -933,10 +933,11 @@
     .contact-detail-btn:hover { background: #e0e4f7; }
     .contacts-table th { position: relative; }
     .contacts-table th .col-resize {
-      position: absolute; right: 0; top: 0; bottom: 0; width: 5px;
-      cursor: col-resize; background: transparent;
+      position: absolute; right: -4px; top: 0; bottom: 0; width: 9px;
+      cursor: col-resize; background: transparent; z-index: 2;
     }
-    .contacts-table th .col-resize:hover { background: #4a6cf7; opacity: 0.3; }
+    .contacts-table th .col-resize:hover,
+    .contacts-table th .col-resize.active { background: rgba(74,108,247,0.3); }
     .cell-editable { cursor: pointer; min-height: 24px; padding: 2px 0; }
     .cell-editable:hover { background: #f0f4ff; border-radius: 4px; }
     .cell-editor { width: 100%; padding: 4px 6px; border: 1px solid #4a6cf7; border-radius: 4px; font-size: 13px; font-family: inherit; outline: none; background: white; box-shadow: 0 0 0 3px rgba(74,108,247,0.08); }
@@ -2992,10 +2993,26 @@
 
     function filterContacts() { renderContacts(); }
 
-    // Resizable columns
+    // Resizable columns with localStorage persistence
+    function saveColumnWidths() {
+      const ths = document.querySelectorAll('.contacts-table th');
+      const widths = Array.from(ths).map(th => th.style.width || '');
+      localStorage.setItem('zinzino_col_widths', JSON.stringify(widths));
+    }
+
+    function restoreColumnWidths() {
+      try {
+        const widths = JSON.parse(localStorage.getItem('zinzino_col_widths') || '[]');
+        if (!widths.length) return;
+        const ths = document.querySelectorAll('.contacts-table th');
+        ths.forEach((th, i) => { if (widths[i]) th.style.width = widths[i]; });
+      } catch {}
+    }
+
     function initColumnResize() {
       const table = document.querySelector('.contacts-table');
       if (!table) return;
+      restoreColumnWidths();
       const ths = table.querySelectorAll('th');
       ths.forEach(th => {
         if (th.querySelector('.col-resize')) return;
@@ -3005,10 +3022,19 @@
         let startX, startW;
         handle.addEventListener('mousedown', e => {
           e.preventDefault();
+          e.stopPropagation();
           startX = e.pageX;
           startW = th.offsetWidth;
-          const onMove = ev => { th.style.width = Math.max(40, startW + ev.pageX - startX) + 'px'; };
-          const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+          handle.classList.add('active');
+          const onMove = ev => {
+            th.style.width = Math.max(40, startW + ev.pageX - startX) + 'px';
+          };
+          const onUp = () => {
+            handle.classList.remove('active');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            saveColumnWidths();
+          };
           document.addEventListener('mousemove', onMove);
           document.addEventListener('mouseup', onUp);
         });
