@@ -1070,7 +1070,7 @@
       .branding-avatar { width: 22px; height: 22px; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Supabase client removed - using server-side API proxy -->
 </head>
 <body>
   <div class="container">
@@ -2820,10 +2820,16 @@
       renderFAQ(term);
     }
 
-    // ===== SUPABASE CONTACTS =====
-    const SUPABASE_URL = 'https://fnehgaymdwwqdnvzbyir.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZWhnYXltZHd3cWRudnpieWlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NzE3MTUsImV4cCI6MjA4OTA0NzcxNX0.ukHL_9SqaUJhoILPadBaomaMPdQtihsXdWoQDRVpGXI';
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ===== CONTACTS API =====
+    async function contactsAPI(body) {
+      const token = sessionStorage.getItem('zinzino_token');
+      const resp = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+        body: JSON.stringify({ token, ...body })
+      });
+      return resp.json();
+    }
 
     let contactsCache = [];
     let contactTypeFilter = 'alle';
@@ -2977,8 +2983,8 @@
     }
 
     async function loadContacts() {
-      const { data, error } = await sb.from('zinzino_contacts').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('Supabase load error:', error); return; }
+      const data = await contactsAPI({ action: 'list' });
+      if (!Array.isArray(data)) { console.error('Load error:', data); return; }
       contactsCache = data.map(r => ({
         id: r.id, name: r.name || '', type: r.type || '', rating: r.rating || '',
         birthday: r.birthday || '', city: r.city || '', source: r.source || '',
@@ -2995,13 +3001,13 @@
 
     async function deleteContact(id) {
       if (!confirm('Kontakt wirklich löschen?')) return;
-      await sb.from('zinzino_contacts').delete().eq('id', id);
+      await contactsAPI({ action: 'delete', id });
       await loadContacts();
     }
 
     async function updateContact(id, field, value) {
       const dbField = field === 'testId' ? 'test_id' : field;
-      await sb.from('zinzino_contacts').update({ [dbField]: value, updated_at: new Date().toISOString() }).eq('id', id);
+      await contactsAPI({ action: 'update', id, fields: { [dbField]: value } });
       const c = contactsCache.find(c => c.id === id);
       if (c) c[field] = value;
     }
@@ -3056,7 +3062,7 @@
           if (testDate && testDate !== c.testDate) { c.testDate = testDate; updates.test_date = testDate; }
           if (testSummary && testSummary !== c.testSummary) { c.testSummary = testSummary; updates.test_summary = testSummary; }
           if (Object.keys(updates).length) {
-            await sb.from('zinzino_contacts').update(updates).eq('id', c.id);
+            await contactsAPI({ action: 'update', id: c.id, fields: updates });
             changed = true;
           }
         } catch {}
@@ -3234,10 +3240,9 @@
       };
 
       if (idVal) {
-        contactData.updated_at = new Date().toISOString();
-        await sb.from('zinzino_contacts').update(contactData).eq('id', parseInt(idVal));
+        await contactsAPI({ action: 'update', id: parseInt(idVal), fields: contactData });
       } else {
-        await sb.from('zinzino_contacts').insert(contactData);
+        await contactsAPI({ action: 'create', contact: contactData });
       }
       closeContactModal();
       await loadContacts();
