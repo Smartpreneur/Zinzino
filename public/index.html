@@ -2879,7 +2879,7 @@
           const markers = data && data[1];
           const status = (meta && meta.APIRESULT === 'READY') ? 'ready' : 'pending';
           const testDate = (meta && meta.Date) ? meta.Date : '';
-          // Build summary from the 5 main markers + AA-Index (6 total)
+          // Build summary using same logic as renderAnalysisText (5 main markers + AA-Index)
           let testSummary = '';
           const mainFields = [
             'Omega-6 (AA)/Omega-3 (EPA) Balance',
@@ -2890,19 +2890,12 @@
           ];
           if (Array.isArray(markers)) {
             const mainMarkers = markers.filter(m => mainFields.includes(m.Fieldname));
-            // AA-Index from fatty acids (data[2])
             const fattyAcids = data && data[2];
             let aaColor = null;
             if (Array.isArray(fattyAcids)) {
               const aa = fattyAcids.find(f => f.Fieldname === 'AA');
               if (aa) {
-                const aaVal = parseFloat(aa.Value);
-                const isChild = meta && parseInt(meta.Age) < 18;
-                if (isChild) {
-                  aaColor = (aaVal >= 7 && aaVal <= 10) ? 'green' : ((aaVal >= 5 && aaVal < 7) || (aaVal > 10 && aaVal <= 12.5)) ? 'yellow' : 'red';
-                } else {
-                  aaColor = (aaVal >= 6.5 && aaVal <= 9.5) ? 'green' : ((aaVal >= 4.5 && aaVal < 6.5) || (aaVal > 9.5 && aaVal <= 12.5)) ? 'yellow' : 'red';
-                }
+                aaColor = getColorForValue(parseFloat(aa.Value), MARKER_CONFIGS.aa_index);
               }
             }
             const allColors = mainMarkers.map(m => m.Color);
