@@ -920,6 +920,56 @@
     .btn-delete:hover { background: #fee2e2; }
     .contact-count { font-size: 13px; color: #888; }
 
+    /* Contact Modal */
+    .contact-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+    }
+    .contact-modal-overlay.open { display: flex; }
+    .contact-modal {
+      background: white; border-radius: 14px; width: 100%; max-width: 600px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .contact-modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0;
+    }
+    .contact-modal-header h3 { font-size: 18px; color: #1a1a2e; margin: 0; }
+    .contact-modal-close {
+      width: 32px; height: 32px; border: none; background: #f5f5f5; border-radius: 8px;
+      font-size: 18px; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center;
+    }
+    .contact-modal-close:hover { background: #e5e5e5; }
+    .contact-modal-body { padding: 20px 24px; }
+    .contact-form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .contact-form-grid .full-width { grid-column: 1 / -1; }
+    .contact-field label {
+      display: block; font-size: 12px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    .contact-field input, .contact-field select, .contact-field textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #d0d5dd; border-radius: 8px;
+      font-size: 14px; font-family: inherit; outline: none; background: #fafafa;
+    }
+    .contact-field input:focus, .contact-field select:focus, .contact-field textarea:focus {
+      border-color: #4a6cf7; background: white; box-shadow: 0 0 0 3px rgba(74,108,247,0.08);
+    }
+    .contact-field textarea { resize: vertical; min-height: 70px; }
+    .contact-field select { cursor: pointer; }
+    .contact-modal-footer {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 16px 24px 20px; border-top: 1px solid #f0f0f0;
+    }
+    .contact-modal-footer button {
+      padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none;
+    }
+    .btn-modal-cancel { background: #f5f5f5; color: #333; }
+    .btn-modal-cancel:hover { background: #e5e5e5; }
+    .btn-modal-save { background: #4a6cf7; color: white; }
+    .btn-modal-save:hover { background: #3a5ce5; }
+
     @media (max-width: 600px) {
       .app-header { align-items: center; }
       .profile-avatar { width: 42px; height: 42px; }
@@ -1189,6 +1239,78 @@
         </div>
         <div class="faq-no-results" id="faqNoResults" style="display:none">Keine Ergebnisse gefunden.</div>
         <div id="faqContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div class="contact-modal-overlay" id="contactModal">
+    <div class="contact-modal">
+      <div class="contact-modal-header">
+        <h3 id="contactModalTitle">Neuer Kontakt</h3>
+        <button class="contact-modal-close" onclick="closeContactModal()">&times;</button>
+      </div>
+      <div class="contact-modal-body">
+        <input type="hidden" id="cmId" />
+        <div class="contact-form-grid">
+          <div class="contact-field full-width">
+            <label>Vor- und Nachname</label>
+            <input type="text" id="cmName" placeholder="z.B. Maria Meier" />
+          </div>
+          <div class="contact-field">
+            <label>Kontakt-Typ</label>
+            <select id="cmType">
+              <option value="">– Auswählen –</option>
+              <option value="Interessent">Interessent</option>
+              <option value="Kunde">Kunde</option>
+              <option value="Partner">Partner</option>
+              <option value="Kontakt">Kontakt</option>
+            </select>
+          </div>
+          <div class="contact-field">
+            <label>Rating</label>
+            <select id="cmRating">
+              <option value="">– Auswählen –</option>
+              <option value="1 Stern">1 &#11088;</option>
+              <option value="2 Sterne">2 &#11088;</option>
+              <option value="3 Sterne">3 &#11088;</option>
+              <option value="4 Sterne">4 &#11088;</option>
+              <option value="5 Sterne">5 &#11088;</option>
+            </select>
+          </div>
+          <div class="contact-field">
+            <label>Geburtstag</label>
+            <input type="date" id="cmBirthday" />
+          </div>
+          <div class="contact-field">
+            <label>Stadt / Region</label>
+            <input type="text" id="cmCity" placeholder="z.B. Graz" />
+          </div>
+          <div class="contact-field">
+            <label>Kontakt-Quelle</label>
+            <input type="text" id="cmSource" placeholder="z.B. Instagram, Empfehlung" />
+          </div>
+          <div class="contact-field">
+            <label>Follow-Up-Datum</label>
+            <input type="date" id="cmFollowup" />
+          </div>
+          <div class="contact-field full-width">
+            <label>Hintergrund & WARUM (Probleme / Ziele / Wünsche)</label>
+            <textarea id="cmBackground" placeholder="z.B. will natürlich unterstützen, immer müde..."></textarea>
+          </div>
+          <div class="contact-field full-width">
+            <label>Notizen zum Gesprächsverlauf</label>
+            <textarea id="cmNotes" placeholder="z.B. möchte den Test machen, nächster Anruf Dienstag..."></textarea>
+          </div>
+          <div class="contact-field full-width">
+            <label>Test-ID</label>
+            <input type="text" id="cmTestId" placeholder="z.B. 24HM99626342BT" />
+          </div>
+        </div>
+      </div>
+      <div class="contact-modal-footer">
+        <button class="btn-modal-cancel" onclick="closeContactModal()">Abbrechen</button>
+        <button class="btn-modal-save" onclick="saveContactModal()">Speichern</button>
       </div>
     </div>
   </div>
@@ -2623,22 +2745,7 @@
     }
 
     function addContact() {
-      const contacts = getContacts();
-      contacts.unshift({
-        id: Date.now(),
-        name: '',
-        type: '',
-        rating: '',
-        birthday: '',
-        city: '',
-        source: '',
-        background: '',
-        notes: '',
-        followup: '',
-        testId: ''
-      });
-      saveContacts(contacts);
-      renderContacts();
+      openContactModal(null);
     }
 
     function deleteContact(id) {
@@ -2679,7 +2786,7 @@
       }
 
       tbody.innerHTML = filtered.map(c => `
-        <tr>
+        <tr style="cursor:pointer" onclick="if(event.target.tagName==='TD')editContact(${c.id})">
           <td><input value="${esc(c.name)}" placeholder="Name..." onchange="updateContact(${c.id},'name',this.value)" /></td>
           <td><select onchange="updateContact(${c.id},'type',this.value)">
             <option value="">–</option>
@@ -2717,6 +2824,65 @@
       if (!str) return '';
       return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
+
+    function openContactModal(contact) {
+      const modal = document.getElementById('contactModal');
+      document.getElementById('contactModalTitle').textContent = contact ? 'Kontakt bearbeiten' : 'Neuer Kontakt';
+      document.getElementById('cmId').value = contact ? contact.id : '';
+      document.getElementById('cmName').value = contact ? contact.name : '';
+      document.getElementById('cmType').value = contact ? contact.type : '';
+      document.getElementById('cmRating').value = contact ? contact.rating : '';
+      document.getElementById('cmBirthday').value = contact ? contact.birthday : '';
+      document.getElementById('cmCity').value = contact ? contact.city : '';
+      document.getElementById('cmSource').value = contact ? contact.source : '';
+      document.getElementById('cmFollowup').value = contact ? contact.followup : '';
+      document.getElementById('cmBackground').value = contact ? contact.background : '';
+      document.getElementById('cmNotes').value = contact ? contact.notes : '';
+      document.getElementById('cmTestId').value = contact ? contact.testId : '';
+      modal.classList.add('open');
+      setTimeout(() => document.getElementById('cmName').focus(), 100);
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.remove('open');
+    }
+
+    function saveContactModal() {
+      const idVal = document.getElementById('cmId').value;
+      const contactData = {
+        name: document.getElementById('cmName').value,
+        type: document.getElementById('cmType').value,
+        rating: document.getElementById('cmRating').value,
+        birthday: document.getElementById('cmBirthday').value,
+        city: document.getElementById('cmCity').value,
+        source: document.getElementById('cmSource').value,
+        followup: document.getElementById('cmFollowup').value,
+        background: document.getElementById('cmBackground').value,
+        notes: document.getElementById('cmNotes').value,
+        testId: document.getElementById('cmTestId').value
+      };
+
+      const contacts = getContacts();
+      if (idVal) {
+        const c = contacts.find(c => c.id === parseInt(idVal));
+        if (c) Object.assign(c, contactData);
+      } else {
+        contacts.unshift({ id: Date.now(), ...contactData });
+      }
+      saveContacts(contacts);
+      closeContactModal();
+      renderContacts();
+    }
+
+    function editContact(id) {
+      const contact = getContacts().find(c => c.id === id);
+      if (contact) openContactModal(contact);
+    }
+
+    // Close modal on overlay click
+    document.getElementById('contactModal').addEventListener('click', function(e) {
+      if (e.target === this) closeContactModal();
+    });
 
     function filterContacts() { renderContacts(); }
 
