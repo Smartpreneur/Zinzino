@@ -887,7 +887,7 @@
     .contacts-toolbar button:hover { background: #3a5ce5; }
     .contacts-table-wrap { overflow-x: auto; }
     .contacts-table {
-      width: 100%; border-collapse: collapse; font-size: 13px;
+      width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto;
     }
     .contacts-table th {
       font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 0.5px;
@@ -933,6 +933,12 @@
       cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: #4a6cf7;
     }
     .contact-detail-btn:hover { background: #e0e4f7; }
+    .contacts-table th { position: relative; }
+    .contacts-table th .col-resize {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 5px;
+      cursor: col-resize; background: transparent;
+    }
+    .contacts-table th .col-resize:hover { background: #4a6cf7; opacity: 0.3; }
 
     /* Contact Modal */
     .contact-modal-overlay {
@@ -2923,6 +2929,33 @@
     });
 
     function filterContacts() { renderContacts(); }
+
+    // Resizable columns
+    function initColumnResize() {
+      const table = document.querySelector('.contacts-table');
+      if (!table) return;
+      const ths = table.querySelectorAll('th');
+      ths.forEach(th => {
+        if (th.querySelector('.col-resize')) return;
+        const handle = document.createElement('div');
+        handle.className = 'col-resize';
+        th.appendChild(handle);
+        let startX, startW;
+        handle.addEventListener('mousedown', e => {
+          e.preventDefault();
+          startX = e.pageX;
+          startW = th.offsetWidth;
+          const onMove = ev => { th.style.width = Math.max(40, startW + ev.pageX - startX) + 'px'; };
+          const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        });
+      });
+    }
+
+    // Init resize after first render
+    const _origRender = renderContacts;
+    renderContacts = function() { _origRender(); initColumnResize(); };
 
     // Initialize on page load
     checkLoginState();
