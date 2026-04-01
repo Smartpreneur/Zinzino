@@ -2690,9 +2690,11 @@
           </select></td>
           <td><select onchange="updateContact(${c.id},'rating',this.value)">
             <option value="">–</option>
-            <option value="A" ${c.rating==='A'?'selected':''}>A</option>
-            <option value="B" ${c.rating==='B'?'selected':''}>B</option>
-            <option value="C" ${c.rating==='C'?'selected':''}>C</option>
+            <option value="1 Stern" ${c.rating==='1 Stern'?'selected':''}>1 &#11088;</option>
+            <option value="2 Sterne" ${c.rating==='2 Sterne'?'selected':''}>2 &#11088;</option>
+            <option value="3 Sterne" ${c.rating==='3 Sterne'?'selected':''}>3 &#11088;</option>
+            <option value="4 Sterne" ${c.rating==='4 Sterne'?'selected':''}>4 &#11088;</option>
+            <option value="5 Sterne" ${c.rating==='5 Sterne'?'selected':''}>5 &#11088;</option>
           </select></td>
           <td><input type="date" value="${esc(c.birthday)}" onchange="updateContact(${c.id},'birthday',this.value)" /></td>
           <td><input value="${esc(c.city)}" placeholder="Stadt..." onchange="updateContact(${c.id},'city',this.value)" style="min-width:100px" /></td>
@@ -2717,6 +2719,15 @@
     }
 
     function filterContacts() { renderContacts(); }
+
+    // Seed example contacts if empty
+    if (!localStorage.getItem('zinzino_contacts')) {
+      saveContacts([
+        { id: 1, name: 'Maria Meier', type: 'Interessent', rating: '4 Sterne', birthday: '', city: '', source: 'Instagram', background: 'ist schwanger, will gern natürlich unterstützen, immer viel müde', notes: 'möchte den Test machen', followup: '', testId: '' },
+        { id: 2, name: 'Claus Clausi', type: 'Partner', rating: '5 Sterne', birthday: '', city: '', source: 'Whatsapp', background: 'möchte sein Haus schneller abbezahlen, persönlich noch unzufrieden mit Gewicht und Energie', notes: 'nach 3 FUs zugesagt', followup: '', testId: '' },
+        { id: 3, name: 'Hans Hinterwald', type: 'Kunde', rating: '1 Stern', birthday: '', city: '', source: 'Instagram', background: 'Schuppenflechte und Hautekzeme', notes: 'wollte gern Test machen, Frau hat nein gesagt', followup: '', testId: '' }
+      ]);
+    }
 
     // Initialize on page load
     checkLoginState();
