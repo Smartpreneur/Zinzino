@@ -919,6 +919,20 @@
     .btn-delete { background: #fef2f2; color: #dc2626; }
     .btn-delete:hover { background: #fee2e2; }
     .contact-count { font-size: 13px; color: #888; }
+    .contacts-filter-bar {
+      display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .contact-filter-btn {
+      padding: 6px 16px; border: 1px solid #d0d5dd; border-radius: 20px;
+      background: white; font-size: 13px; cursor: pointer; color: #555;
+    }
+    .contact-filter-btn:hover { border-color: #4a6cf7; color: #4a6cf7; }
+    .contact-filter-btn.active { background: #4a6cf7; color: white; border-color: #4a6cf7; }
+    .contact-detail-btn {
+      width: 28px; height: 28px; border: none; background: #f0f2f5; border-radius: 6px;
+      cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: #4a6cf7;
+    }
+    .contact-detail-btn:hover { background: #e0e4f7; }
 
     /* Contact Modal */
     .contact-modal-overlay {
@@ -1079,6 +1093,13 @@
 
     <!-- Pane: Kontakte (nur eingeloggt sichtbar) -->
     <div class="tab-pane" id="paneKontakte">
+      <div class="contacts-filter-bar" id="contactFilterBar">
+        <button class="contact-filter-btn active" onclick="setContactFilter('alle')">Alle</button>
+        <button class="contact-filter-btn" onclick="setContactFilter('Kunde')">Kunden</button>
+        <button class="contact-filter-btn" onclick="setContactFilter('Partner')">Partner</button>
+        <button class="contact-filter-btn" onclick="setContactFilter('Interessent')">Interessenten</button>
+        <button class="contact-filter-btn" onclick="setContactFilter('Kontakt')">Kontakte</button>
+      </div>
       <div class="contacts-toolbar">
         <input type="text" id="contactSearch" placeholder="Kontakte durchsuchen..." oninput="filterContacts()" />
         <span class="contact-count" id="contactCount"></span>
@@ -1088,12 +1109,13 @@
         <table class="contacts-table">
           <thead>
             <tr>
+              <th style="width:36px"></th>
               <th>Vor- und Nachname</th>
-              <th>Kontakt-Typ</th>
+              <th>Typ</th>
               <th>Rating</th>
-              <th>Geburtstag</th>
-              <th>Stadt/Region</th>
-              <th>Kontakt-Quelle</th>
+              <th>Geb.</th>
+              <th>Stadt</th>
+              <th>Quelle</th>
               <th>Hintergrund & WARUM</th>
               <th>Notizen</th>
               <th>Follow-Up</th>
@@ -2742,6 +2764,25 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let contactsCache = [];
+    let contactTypeFilter = 'alle';
+
+    function setContactFilter(type) {
+      contactTypeFilter = type;
+      document.querySelectorAll('.contact-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === (type === 'alle' ? 'Alle' : type === 'Kunde' ? 'Kunden' : type === 'Partner' ? 'Partner' : type === 'Interessent' ? 'Interessenten' : 'Kontakte'));
+      });
+      renderContacts();
+    }
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return '';
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${dd}.${mm}.${yy}`;
+    }
 
     async function loadContacts() {
       const { data, error } = await sb.from('zinzino_contacts').select('*').order('created_at', { ascending: false });
@@ -2784,47 +2825,36 @@
       if (!tbody) return;
       const search = (document.getElementById('contactSearch')?.value || '').toLowerCase();
 
-      const filtered = search
-        ? contactsCache.filter(c => Object.values(c).join(' ').toLowerCase().includes(search))
-        : contactsCache;
+      let filtered = contactsCache;
+      if (contactTypeFilter !== 'alle') {
+        filtered = filtered.filter(c => c.type === contactTypeFilter);
+      }
+      if (search) {
+        filtered = filtered.filter(c => Object.values(c).join(' ').toLowerCase().includes(search));
+      }
 
       document.getElementById('contactCount').textContent = `${filtered.length} Kontakt${filtered.length !== 1 ? 'e' : ''}`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#888">${contactsCache.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:#888">${contactsCache.length === 0 ? 'Noch keine Kontakte. Klicke \"+ Neuer Kontakt\" um zu starten.' : 'Keine Treffer.'}</td></tr>`;
         return;
       }
 
       tbody.innerHTML = filtered.map(c => `
-        <tr style="cursor:pointer" onclick="if(event.target.tagName==='TD')editContact(${c.id})">
-          <td><input value="${esc(c.name)}" placeholder="Name..." onchange="updateContact(${c.id},'name',this.value)" /></td>
-          <td><select onchange="updateContact(${c.id},'type',this.value)">
-            <option value="">–</option>
-            <option value="Interessent" ${c.type==='Interessent'?'selected':''}>Interessent</option>
-            <option value="Kunde" ${c.type==='Kunde'?'selected':''}>Kunde</option>
-            <option value="Partner" ${c.type==='Partner'?'selected':''}>Partner</option>
-            <option value="Kontakt" ${c.type==='Kontakt'?'selected':''}>Kontakt</option>
-          </select></td>
-          <td><select onchange="updateContact(${c.id},'rating',this.value)">
-            <option value="">–</option>
-            <option value="1 Stern" ${c.rating==='1 Stern'?'selected':''}>1 &#11088;</option>
-            <option value="2 Sterne" ${c.rating==='2 Sterne'?'selected':''}>2 &#11088;</option>
-            <option value="3 Sterne" ${c.rating==='3 Sterne'?'selected':''}>3 &#11088;</option>
-            <option value="4 Sterne" ${c.rating==='4 Sterne'?'selected':''}>4 &#11088;</option>
-            <option value="5 Sterne" ${c.rating==='5 Sterne'?'selected':''}>5 &#11088;</option>
-          </select></td>
-          <td><input type="date" value="${esc(c.birthday)}" onchange="updateContact(${c.id},'birthday',this.value)" /></td>
-          <td><input value="${esc(c.city)}" placeholder="Stadt..." onchange="updateContact(${c.id},'city',this.value)" style="min-width:100px" /></td>
-          <td><input value="${esc(c.source)}" placeholder="Quelle..." onchange="updateContact(${c.id},'source',this.value)" style="min-width:100px" /></td>
-          <td><textarea onchange="updateContact(${c.id},'background',this.value)" placeholder="Probleme/Ziele...">${esc(c.background)}</textarea></td>
-          <td><textarea onchange="updateContact(${c.id},'notes',this.value)" placeholder="Notizen...">${esc(c.notes)}</textarea></td>
-          <td><input type="date" value="${esc(c.followup)}" onchange="updateContact(${c.id},'followup',this.value)" /></td>
-          <td>
-            ${c.testId ? `<button class="test-id-link" onclick="openTestFromContact('${esc(c.testId)}')">${esc(c.testId)}</button>` : ''}
-            <input value="${esc(c.testId)}" placeholder="Test-ID..." onchange="updateContact(${c.id},'testId',this.value);renderContacts()" style="min-width:120px;${c.testId?'margin-top:4px':''}" />
-          </td>
+        <tr>
+          <td><button class="contact-detail-btn" onclick="editContact(${c.id})" title="Details \u00f6ffnen">&#9998;</button></td>
+          <td>${esc(c.name) || '<span style="color:#ccc">–</span>'}</td>
+          <td>${esc(c.type) || ''}</td>
+          <td>${esc(c.rating) || ''}</td>
+          <td>${fmtDate(c.birthday)}</td>
+          <td>${esc(c.city) || ''}</td>
+          <td>${esc(c.source) || ''}</td>
+          <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.background)}">${esc(c.background) || ''}</td>
+          <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.notes)}">${esc(c.notes) || ''}</td>
+          <td>${fmtDate(c.followup)}</td>
+          <td>${c.testId ? `<button class="test-id-link" onclick="openTestFromContact('${esc(c.testId)}')" title="Testauswertung \u00f6ffnen">${esc(c.testId)}</button>` : '<span style="color:#ccc">–</span>'}</td>
           <td class="contacts-actions">
-            <button class="btn-delete" onclick="deleteContact(${c.id})" title="Löschen">&#10005;</button>
+            <button class="btn-delete" onclick="deleteContact(${c.id})" title="L\u00f6schen">&#10005;</button>
           </td>
         </tr>
       `).join('');
